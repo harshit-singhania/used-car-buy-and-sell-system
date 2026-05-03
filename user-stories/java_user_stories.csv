@@ -270,7 +270,7 @@ For each review:
   - Find buyer name from ArrayList<User> using buyerId
   - Display: buyerName, rating (as stars), comment, reviewDate
   - Format: '<buyerName> rated you ★★★★☆ (4/5) on <date>'
-  - Display comment if present: '"<comment>"'
+  - Display comment if present: '<comment>'
 
 If no reviews exist, display: 'No reviews yet. Reviews appear after buyers complete purchases.'
 
