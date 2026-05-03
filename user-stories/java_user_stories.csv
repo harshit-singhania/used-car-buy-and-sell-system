@@ -1,0 +1,433 @@
+SlNo,Feature,Story Number,Description (Card),Acceptance Criteria (Confirmation)
+1,User Registration – (ArrayList),US001,"As an admin, I want to register/update/delete users so that buyer and seller accounts can be managed in the system.","Developer needs to input the following information from the console using programming.
+Display the menu to:
+
+1. To register new user - if option 1 is entered, then get the User attributes as mentioned below, create a User object and add to ArrayList<User>:
+  - userId: a string data type (minimum 5, maximum 20 characters, alphanumeric only)
+  - fullName: a string data type with a maximum length of 50 characters
+  - email: a string data type with a maximum length of 100 characters (must contain @ and domain)
+  - mobileNumber: a string data type (exactly 10 digits)
+  - password: a string data type (minimum 8 characters, must contain at least one uppercase, one lowercase, one digit, and one special character)
+  - city: a string data type (e.g., Delhi, Mumbai, Bangalore, Chennai, Hyderabad, Pune)
+  - role: a string data type (must be either 'buyer' or 'seller')
+Once all fields are taken as input and validated, create a User object and insert it to the ArrayList.
+Before inserting, check if userId or email already exists in the ArrayList. If duplicate found, display: 'User ID already exists' or 'Email already registered'.
+After successful registration, display: 'User Registration is successful. Welcome <fullName>!'
+
+2. To Update the User details - if option entered is 2, then get the userId and the field to update (email, mobileNumber, or city). Update the value for the specific userId.
+Once the user object is updated, display: 'User details updated successfully for <userId>'.
+If userId is not found, display: 'User not found'.
+
+3. To Delete the user - if option entered is 3, get the userId and remove the related user from the ArrayList.
+Once identified and removed, display: 'User <userId> has been deleted successfully'.
+If userId is not found, display: 'User not found'.
+
+4. To View all users - if option entered is 4, display all users in a formatted table showing: userId, fullName, email, city, role.
+
+* This maps to Frontend US001 (Registration) and SQL US001/US018 (Users table and authentication queries)."
+2,User Login Simulation – (ArrayList),US002,"As a buyer/seller, I want to login to the system using my credentials so that I can access role-specific features.","Developer needs to implement login simulation from the console.
+
+Display the login prompt:
+- Enter User ID: (read from console)
+- Enter Password: (read from console)
+
+Validation Logic:
+- Iterate through the ArrayList<User> to find a matching userId and password combination.
+- If credentials match, store the logged-in user reference in a currentUser variable.
+- Check the role of the matched user:
+  a) If role is 'buyer', display: 'Login successful. Welcome <fullName> (Buyer)!' and show the Buyer Menu.
+  b) If role is 'seller', display: 'Login successful. Welcome <fullName> (Seller)!' and show the Seller Menu.
+- If no match is found, display: 'Invalid User ID or Password. Please try again.'
+- After 3 consecutive failed attempts, display: 'Account locked. Please restart the application.'
+
+Buyer Menu:
+1) Browse Available Cars
+2) View Car Details
+3) My Wishlist
+4) Recently Viewed Cars
+5) Purchase a Car
+6) My Purchase History
+7) Compare Cars
+8) Recommendations
+9) Logout
+
+Seller Menu:
+1) View My Listings
+2) Add New Car
+3) My Sales History
+4) View My Reviews & Rating
+5) Seller Dashboard
+6) Logout
+
+* This maps to Frontend US002/US003 (Login) and SQL US018 (Authentication queries)."
+3,Car Listing Management – (ArrayList),US003,"As a seller, I want to add/update/delete car listings so that I can manage my inventory on the marketplace.","Developer needs to input the following information from the console.
+Display the Seller Car Management menu:
+
+1. Add New Car - if option 1 is entered, get the Car attributes as mentioned below, create a Car object and add to ArrayList<Car>:
+  - carId: auto-generated integer (increment from last carId in ArrayList)
+  - make: string (must be one of: Maruti, Hyundai, Honda, Toyota, Tata, Mahindra, Kia, Ford, Volkswagen, BMW)
+  - model: string (maximum 30 characters)
+  - year: integer (must be between 2000 and current year)
+  - price: double (must be between 25000 and 10000000)
+  - mileage: integer (must be between 0 and 500000)
+  - fuelType: string (must be one of: Petrol, Diesel, CNG, Electric)
+  - transmission: string (must be one of: Manual, Automatic)
+  - color: string (White, Black, Silver, Red, Blue, Grey)
+  - sellerId: auto-set to currentUser's userId
+  - status: default 'available'
+  - listingDate: current date (use java.time.LocalDate)
+  - viewCount: default 0
+  - healthScore: auto-calculated using formula: 100 - (currentYear - year) * 3 - (mileage / 10000) * 2, clamped between 0 and 100
+
+After adding, display: 'Car listed successfully! Listing ID: <carId>. Health Score: <healthScore>'
+Also run fraud detection: if price is more than 40% below the average price of cars with the same make and year in the ArrayList, display: 'WARNING: This listing has been flagged for unusual pricing.'
+
+2. Update Car Price - if option 2, get carId and new price. Update only if the car belongs to the current seller.
+Display: 'Price updated for Car ID: <carId>'
+
+3. Remove Car Listing - if option 3, get carId and remove from ArrayList only if status is 'available' and belongs to current seller.
+Display: 'Car listing <carId> removed successfully'
+
+4. View My Listings - if option 4, display all cars where sellerId matches currentUser in a formatted table: carId, make, model, year, price, status, healthScore, viewCount.
+
+* This maps to Frontend US008 (Add Car) and SQL US002/US003 (Cars table)."
+4,Browse Available Cars – (ArrayList),US004,"As a buyer, I want to browse all available cars with filtering and sorting options so that I can find cars matching my needs.","As a Buyer, when the option for 'Browse Available Cars' is selected from the Buyer Menu, display all cars from ArrayList<Car> where status is 'available'.
+
+Display each car in a formatted row showing: carId, make, model, year, price, fuelType, transmission, healthScore, viewCount.
+
+After displaying all cars, show the Smart Filter sub-menu:
+1) Filter by Price Range - prompt for minPrice and maxPrice, display cars within range
+2) Filter by Make/Brand - prompt for make name, display matching cars
+3) Filter by Fuel Type - prompt for fuel type (Petrol/Diesel/CNG/Electric), display matching cars
+4) Filter by Year Range - prompt for fromYear and toYear, display cars within range
+5) Filter by Transmission - prompt for Manual/Automatic, display matching cars
+6) Combined Filter - prompt for price range, fuel type, and year range together, display cars matching ALL criteria
+7) Sort by Price (Low to High) - display sorted ArrayList
+8) Sort by Price (High to Low) - display sorted ArrayList
+9) Sort by Health Score (Highest First) - display sorted ArrayList
+10) Sort by Newest Listings - sort by listingDate descending
+11) Back to Main Menu
+
+Display count: 'Showing X available cars' before each result.
+If no cars match the filter, display: 'No cars found matching your criteria.'
+
+* This maps to Frontend US006 (Car Listing with Smart Filters) and SQL US011 (Smart Search queries)."
+5,View Car Details – (ArrayList),US005,"As a buyer, I want to view complete details of a specific car including health score and seller rating so that I can make an informed decision.","As a Buyer, when the option for 'View Car Details' is selected, prompt: 'Enter Car ID:'
+
+Retrieve the car from ArrayList<Car> matching the carId.
+If not found, display: 'Car not found.'
+
+If found, display the following sections:
+
+1. Car Information:
+  - Make, Model, Year, Color
+  - Price (formatted with commas)
+  - Fuel Type, Transmission
+  - Mileage (formatted, e.g., 45,000 km)
+  - Status: Available/Sold
+  - Listed on: <listingDate>
+
+2. Health Score:
+  - Display calculated score (0-100)
+  - Display grade: 'Excellent' (70-100), 'Good' (40-69), 'Poor' (0-39)
+  - Display breakdown: 'Age Deduction: -X points | Mileage Deduction: -X points'
+
+3. Price Analysis:
+  - Calculate average price of all cars with the same make and year from ArrayList
+  - Display: 'Market Average for <make> <year>: ₹X,XX,XXX'
+  - Display: 'This car is X% below/above market average'
+  - If price is more than 40% below average, display: 'FRAUD ALERT: Price is significantly below market average!'
+
+4. Seller Information:
+  - Find seller from ArrayList<User> using car's sellerId
+  - Display: Seller Name, City, Role
+  - Calculate average rating from ArrayList<Review> for this seller
+  - Display: 'Seller Rating: X.X/5 (Y reviews)'
+  - Display: 'Total Cars Sold: Z' (count from ArrayList<Purchase>)
+
+5. People Also Viewed:
+  - Find and display 3 cars from ArrayList with same fuelType or price within ±15%, excluding current car
+  - Display: carId, make, model, price, healthScore
+
+After viewing, increment the car's viewCount in the ArrayList.
+Also add this carId with current timestamp to the buyer's recentlyViewed list (ArrayList<CarView>).
+
+* This maps to Frontend US007 (Car Details) and SQL US009/US010/US012 (Health Score, Fraud, Recommendation queries)."
+6,Purchase Car – (ArrayList),US006,"As a buyer, I want to purchase a car so that the transaction is recorded and the car is marked as sold.","As a Buyer, when the option for 'Purchase a Car' is selected, prompt: 'Enter Car ID to purchase:'
+
+Retrieve the car from ArrayList<Car>.
+If not found, display: 'Car not found.'
+If car status is 'sold', display: 'Sorry, this car has already been sold.'
+
+If car is available, display Order Summary:
+- Car: <make> <model> <year>
+- Price: ₹<formatted price>
+- Seller: <seller name>
+- Health Score: <score> (<grade>)
+
+Prompt: 'Select Payment Method: 1) Cash  2) Bank Transfer  3) EMI'
+If EMI is selected, display EMI breakdown at 9% annual interest:
+- 12 months: ₹<amount>/month
+- 24 months: ₹<amount>/month
+- 36 months: ₹<amount>/month
+EMI formula: P * [r(1+r)^n] / [(1+r)^n - 1] where r = 0.0075 (monthly rate)
+
+Prompt: 'Confirm purchase? (yes/no)'
+If 'yes':
+  a) Create a Purchase object with: purchaseId (auto-increment), carId, buyerId (currentUser), sellerId, purchaseDate (current date), amount, paymentMethod
+  b) Add to ArrayList<Purchase>
+  c) Update car status to 'sold' in ArrayList<Car>
+  d) Remove car from buyer's wishlist (ArrayList<Wishlist>) if present
+  e) Display: 'Purchase Successful! Transaction ID: <purchaseId>'
+  f) Prompt: 'Rate this seller? (1-5):' and optional comment, create Review object and add to ArrayList<Review>
+
+If 'no', display: 'Purchase cancelled.' and return to Buyer Menu.
+
+* This maps to Frontend US012 (Purchase Car) and SQL US004/US016 (Purchases table and history)."
+7,Wishlist Management – (ArrayList),US007,"As a buyer, I want to add, remove, and view cars in my wishlist so that I can save cars for later.","As a Buyer, when the option for 'My Wishlist' is selected from the Buyer Menu, display the Wishlist sub-menu:
+
+1. View My Wishlist - Display all cars in the buyer's wishlist:
+  - Iterate through ArrayList<Wishlist> where userId matches currentUser
+  - For each entry, find the car from ArrayList<Car> using carId
+  - Display: carId, make, model, year, price, healthScore, status (available/sold), addedDate
+  - Show total count: 'Your Wishlist: X cars'
+  - If wishlist is empty, display: 'Your wishlist is empty.'
+
+2. Add Car to Wishlist - Prompt: 'Enter Car ID to add:'
+  - Check if car exists in ArrayList<Car>
+  - Check if car is already in buyer's wishlist (prevent duplicates). If duplicate, display: 'This car is already in your wishlist.'
+  - If valid, create a Wishlist object with: wishlistId (auto-increment), userId, carId, addedDate (current date)
+  - Add to ArrayList<Wishlist>
+  - Display: '<make> <model> added to your wishlist!'
+
+3. Remove Car from Wishlist - Prompt: 'Enter Car ID to remove:'
+  - Find and remove the entry from ArrayList<Wishlist> where userId matches currentUser and carId matches input
+  - Display: 'Car removed from your wishlist.'
+  - If not found, display: 'Car not in your wishlist.'
+
+4. Back to Main Menu
+
+* This maps to Frontend US009 (Wishlist Page) and SQL US005/US013 (Wishlist table and operations)."
+8,Recently Viewed Cars – (ArrayList),US008,"As a buyer, I want to view my recently viewed cars so that I can quickly return to cars I was browsing.","As a Buyer, when the option for 'Recently Viewed Cars' is selected from the Buyer Menu:
+
+Retrieve all CarView entries from ArrayList<CarView> where userId matches currentUser.
+Sort by viewedAt timestamp in descending order (most recent first).
+
+Remove duplicate carIds, keeping only the most recent entry for each car.
+Display the top 10 most recently viewed cars in a formatted table:
+- carId, make, model, year, price, fuelType, healthScore, status, viewedAt
+
+For each entry:
+- Find the car from ArrayList<Car> to get current details
+- Display availability: 'Available' or 'Sold'
+
+Show count: 'Recently Viewed: X cars'
+If no cars have been viewed, display: 'You have not viewed any cars yet.'
+
+Sub-menu after display:
+1) View details of a car (enter carId) - calls the View Car Details logic
+2) Add a car to wishlist (enter carId)
+3) Back to Main Menu
+
+* This maps to Frontend US010 (Recently Viewed) and SQL US007/US014 (CarViews table and queries)."
+9,Car Recommendation System – (ArrayList),US009,"As a buyer, I want to see personalized car recommendations so that I can discover cars matching my preferences.","As a Buyer, when the option for 'Recommendations' is selected from the Buyer Menu:
+
+Logic for generating recommendations:
+
+1. If the buyer has recently viewed cars (ArrayList<CarView> has entries for this user):
+  - Get the last viewed car's details from ArrayList<Car>
+  - Find all available cars where:
+    a) fuelType matches the last viewed car's fuelType AND
+    b) price is within ±20% of the last viewed car's price AND
+    c) carId is not the last viewed carId
+  - Display up to 3 matching cars as 'Recommended for You'
+
+2. If no viewing history exists (fallback):
+  - Display the 3 most recently listed available cars (sorted by listingDate descending)
+  - Display heading: 'Newest Listings for You'
+
+3. Top Rated Sellers' Cars:
+  - Calculate average rating per seller from ArrayList<Review>
+  - Find available cars from sellers with average rating >= 4.0
+  - Display up to 3 such cars as 'Cars from Top-Rated Sellers'
+
+Display each recommended car showing: carId, make, model, year, price, healthScore, sellerRating.
+
+If no recommendations can be generated, display: 'No recommendations available at this time. Browse all cars to get started!'
+
+* This maps to Frontend US004 (Recommendation Section) and SQL US012 (Recommendation queries)."
+10,Seller Rating and Reviews – (ArrayList),US010,"As a seller, I want to view my ratings and reviews so that I can track my reputation on the platform.","As a Seller, when the option for 'View My Reviews & Rating' is selected from the Seller Menu:
+
+Retrieve all reviews from ArrayList<Review> where sellerId matches currentUser's userId.
+
+Display Seller Rating Summary:
+- Calculate average rating: sum of all ratings / total reviews, rounded to 1 decimal
+- Display: 'Your Average Rating: X.X/5 (Y reviews)'
+- Display star representation: e.g., '★★★★☆' for 4.X rating
+
+Display Individual Reviews (sorted by reviewDate descending):
+For each review:
+  - Find buyer name from ArrayList<User> using buyerId
+  - Display: buyerName, rating (as stars), comment, reviewDate
+  - Format: '<buyerName> rated you ★★★★☆ (4/5) on <date>'
+  - Display comment if present: '"<comment>"'
+
+If no reviews exist, display: 'No reviews yet. Reviews appear after buyers complete purchases.'
+
+Rating Breakdown:
+- Count reviews per star level (5-star: X, 4-star: X, 3-star: X, 2-star: X, 1-star: X)
+- Display as a simple bar chart in console using '█' characters
+
+* This maps to Frontend US013 (Seller Reviews) and SQL US006/US015 (Reviews table and rating queries)."
+11,Seller Dashboard – (ArrayList),US011,"As a seller, I want to view my dashboard with performance metrics so that I can track my sales performance.","As a Seller, when the option for 'Seller Dashboard' is selected from the Seller Menu:
+
+Calculate and display the following metrics by iterating through ArrayLists:
+
+1. Listing Summary:
+  - Total Cars Listed: count from ArrayList<Car> where sellerId matches currentUser
+  - Cars Available: count where status = 'available'
+  - Cars Sold: count where status = 'sold'
+  - Display formatted: 'Listed: X | Available: Y | Sold: Z'
+
+2. Revenue Summary:
+  - Total Revenue: sum of amount from ArrayList<Purchase> where sellerId matches currentUser
+  - Average Sale Price: totalRevenue / carsSold
+  - Display formatted: 'Total Revenue: ₹X,XX,XXX | Avg Sale Price: ₹X,XX,XXX'
+
+3. Rating Summary:
+  - Average Rating from ArrayList<Review> for this seller
+  - Total Reviews count
+  - Display: 'Rating: X.X/5 (Y reviews)'
+
+4. Active Listings Detail:
+  - Display all available cars for this seller in a table: carId, make, model, year, price, healthScore, viewCount
+  - Flag any car with fraud detection: if price > 40% below average for same make+year, show 'PRICE FLAGGED' next to it
+
+5. Most Viewed Car:
+  - Find the seller's car with the highest viewCount
+  - Display: 'Most Popular Listing: <make> <model> (<viewCount> views)'
+
+* This maps to Frontend US005 (Seller Dashboard) and SQL US015 (Seller dashboard summary query)."
+12,Purchase History – (ArrayList),US012,"As a buyer, I want to view my purchase history with summary analytics so that I can track all my car purchases.","As a Buyer, when the option for 'My Purchase History' is selected from the Buyer Menu:
+
+Retrieve all purchases from ArrayList<Purchase> where buyerId matches currentUser.
+
+Display Purchase Summary:
+- Total Cars Bought: count of purchases
+- Total Amount Spent: sum of all purchase amounts, formatted with ₹ and commas
+- Most Recent Purchase: date of the latest purchase
+- Display: 'Total Purchases: X | Total Spent: ₹X,XX,XXX | Last Purchase: <date>'
+
+Display Each Purchase (sorted by purchaseDate descending):
+For each purchase:
+  - Find car details from ArrayList<Car> using carId
+  - Find seller details from ArrayList<User> using sellerId
+  - Display: purchaseId, carMake, carModel, carYear, amount, paymentMethod, purchaseDate, sellerName
+
+Sub-menu:
+1) View details of a purchased car (enter purchaseId) - show full car details
+2) Rate a seller (enter purchaseId) - check if review already exists in ArrayList<Review> for this purchaseId. If exists, display: 'You have already reviewed this seller for this purchase.' If not, prompt for rating (1-5) and optional comment, create Review and add to ArrayList.
+3) Back to Main Menu
+
+If no purchases exist, display: 'You have not purchased any cars yet.'
+
+* This maps to Frontend US014 (Purchase History) and SQL US016 (Purchase History queries)."
+13,Compare Cars – (ArrayList),US013,"As a buyer, I want to compare multiple cars side by side so that I can evaluate which car offers the best value.","As a Buyer, when the option for 'Compare Cars' is selected from the Buyer Menu:
+
+Maintain a temporary ArrayList<Integer> comparisonList (max 3 car IDs) during the session.
+
+Display Compare Cars sub-menu:
+1. Add Car to Compare - Prompt: 'Enter Car ID:'
+  - Validate car exists in ArrayList<Car>
+  - Check if comparisonList already has 3 cars. If full, display: 'Maximum 3 cars can be compared. Remove one first.'
+  - Check for duplicates. If already added, display: 'Car already in comparison list.'
+  - Add carId to comparisonList. Display: '<make> <model> added to comparison.'
+
+2. Remove Car from Compare - Prompt: 'Enter Car ID to remove:'
+  - Remove from comparisonList. Display: 'Car removed from comparison.'
+
+3. View Comparison - Display only if comparisonList has >= 2 cars:
+  - Display a side-by-side comparison table with columns for each car:
+    Row 1: Make & Model
+    Row 2: Year
+    Row 3: Price (formatted)
+    Row 4: Fuel Type
+    Row 5: Transmission
+    Row 6: Mileage
+    Row 7: Health Score (with grade)
+    Row 8: Seller Rating
+    Row 9: Fraud Flag (FLAGGED/NORMAL)
+    Row 10: Price vs Market Avg (X% above/below)
+  - Highlight best value per row in console using [BEST] marker:
+    Lowest price, lowest mileage, highest healthScore, highest sellerRating
+  - If fewer than 2 cars, display: 'Add at least 2 cars to compare.'
+
+4. Clear All - Empty the comparisonList. Display: 'Comparison list cleared.'
+5. Back to Main Menu
+
+* This maps to Frontend US011 (Car Comparison Page) and SQL US009/US010/US017 (Health Score, Fraud, Price queries)."
+14,Fraud Detection System – (ArrayList),US014,"As a system, I want to automatically detect potentially fraudulent car listings so that buyers are protected from scams.","The fraud detection logic should run automatically when:
+a) A new car is added to ArrayList<Car> (in US003)
+b) A buyer views car details (in US005)
+
+Detection Logic:
+1. Group all cars in ArrayList<Car> by make and year
+2. Calculate the average price for each group
+3. For the target car, compare its price to the group average:
+  - If price < average * 0.60 (more than 40% below), mark as FLAGGED
+  - Otherwise, mark as NORMAL
+
+Implementation:
+- Create a method: String detectFraud(int carId) that returns 'FLAGGED' or 'NORMAL'
+- Create a method: double getMarketAverage(String make, int year) that calculates average price from ArrayList
+- Create a method: double getPriceDeviation(int carId) that returns the percentage deviation
+
+Console Output when flagged:
+'⚠ FRAUD ALERT: Car ID <carId> (<make> <model>) is priced at ₹<price> which is <X>% below the market average of ₹<avgPrice> for <make> <year>.'
+
+When running a full scan (Seller Dashboard or Admin), iterate through all available cars and list all flagged listings.
+
+* This maps to Frontend US006/US007 (Fraud Warning) and SQL US010 (Fraud Detection query)."
+15,View Count and Popularity Tracking – (ArrayList),US015,"As a system, I want to track car view counts so that popular listings can be identified and displayed.","View count tracking should be integrated into the View Car Details flow (US005).
+
+Logic:
+1. Every time a buyer views a car's details, increment the viewCount field on the Car object in ArrayList<Car>.
+2. Create a CarView object with: viewId (auto-increment), userId, carId, viewedAt (current datetime) and add to ArrayList<CarView>.
+
+Popularity Features:
+1. Most Viewed Cars - When accessed from any menu:
+  - Sort ArrayList<Car> by viewCount descending (status = 'available' only)
+  - Display top 5 most viewed cars: carId, make, model, price, viewCount
+  - Display: 'Most Popular Cars on the Platform:'
+
+2. View Count Display:
+  - Show viewCount alongside car details in all listing displays
+  - Format: '<viewCount> views' next to each car
+
+3. Trending Cars:
+  - Count views from ArrayList<CarView> in the current session
+  - Display cars with the most views in the current session as 'Trending Now'
+
+* This maps to Frontend US006 (View Count) and SQL US007/US014 (CarViews table and popularity queries)."
+16,Contact Support and Feedback – (ArrayList),US016,"As a user, I want to submit feedback or report issues so that my concerns are recorded in the system.","As a User (Buyer or Seller), when 'Contact Support' option is selected from either menu:
+
+Display Support Information:
+- Phone: +91-1800-XXX-XXXX (Toll Free)
+- Email: support@usedcarmart.com
+- Working Hours: Mon-Sat, 9 AM - 6 PM IST
+
+Display Feedback sub-menu:
+1. Submit Feedback - Prompt for:
+  - Subject: display options (1: General Inquiry, 2: Report a Bug, 3: Report Fraud, 4: Feedback, 5: Other)
+  - Message: string input (minimum 20 characters, maximum 500 characters)
+  - Validate message length. If too short, display: 'Message must be at least 20 characters.'
+  - Create a Feedback object with: feedbackId (auto-increment), userId, subject, message, submittedDate
+  - Add to ArrayList<Feedback>
+  - Display: 'Thank you for your feedback! Reference ID: <feedbackId>'
+
+2. View My Feedback History - Display all feedback submitted by currentUser from ArrayList<Feedback>:
+  - feedbackId, subject, message (truncated to 50 chars), submittedDate
+
+3. Back to Main Menu
+
+* This maps to Frontend US015 (Contact Support) and SQL US008 (Feedbacks table)."
