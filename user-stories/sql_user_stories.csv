@@ -1,0 +1,287 @@
+SlNo,Feature,Story Number,Description (Card),Acceptance Criteria (Confirmation)
+1,Storing User Data – SQL,US001,"As a developer, I want to create a table to store user profile information so that the system can manage buyer and seller accounts.","* The users table should have columns for user_id, full_name, email, mobile_number, password, city, role, and registration_date.
+- user_id: VARCHAR(20), Primary Key
+- full_name: VARCHAR(50), NOT NULL
+- email: VARCHAR(100), NOT NULL, UNIQUE
+- mobile_number: VARCHAR(15), NOT NULL
+- password: VARCHAR(30), NOT NULL
+- city: VARCHAR(30), NOT NULL
+- role: ENUM('buyer', 'seller'), NOT NULL
+- registration_date: DATE, DEFAULT CURRENT_DATE
+
+* Set the user_id column as the primary key.
+* Add a UNIQUE constraint on the email column to prevent duplicate registrations.
+* Create the table script as an .sql file.
+* Insert 5 users' information (at least 3 buyers and 2 sellers) to this table. Create the insert script for the same. Also save it as a users.sql file.
+* This maps to Frontend US001 (Registration) and US002/US003 (Login)."
+2,Storing Car Listings – SQL,US002,"As a developer, I want to create a table to store car listing information so that sellers can list their cars for sale.","* The SQL table should be named cars.
+The table should have columns for:
+- car_id: INT, Primary Key, AUTO_INCREMENT
+- make: VARCHAR(30), NOT NULL
+- model: VARCHAR(30), NOT NULL
+- year: INT, NOT NULL, CHECK (year >= 2000 AND year <= 2026)
+- price: DECIMAL(10,2), NOT NULL, CHECK (price >= 25000 AND price <= 10000000)
+- mileage: INT, NOT NULL, CHECK (mileage >= 0 AND mileage <= 500000)
+- fuel_type: ENUM('Petrol', 'Diesel', 'CNG', 'Electric'), NOT NULL
+- transmission: ENUM('Manual', 'Automatic'), NOT NULL
+- color: VARCHAR(20), NOT NULL
+- seller_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- status: ENUM('available', 'sold'), DEFAULT 'available'
+- listing_date: DATE, DEFAULT CURRENT_DATE
+- view_count: INT, DEFAULT 0
+
+* The car_id should auto-increment with each new entry.
+* The seller_id must reference an existing user with role 'seller'.
+* Create the table script as an .sql file.
+* Insert 10 car listings to this table with varied makes, years, prices, and fuel types. Save it as a cars.sql file.
+* This maps to Frontend US006 (Car Listings) and US008 (Add Car)."
+3,Insert Car Listing – SQL,US003,"As a developer, I want to insert car listing data into the cars table so that new listings appear on the marketplace.","* Prepare SQL INSERT statements to add car data to the cars table.
+The information for each car should include:
+- make, model, year, price, mileage, fuel_type, transmission, color, seller_id, status, listing_date
+- car_id is auto-generated
+- view_count defaults to 0
+
+* Insert 10 cars with diverse data covering:
+- At least 4 different makes (Maruti, Hyundai, Honda, Toyota, Tata)
+- At least 3 different fuel types
+- Prices ranging from 50000 to 5000000
+- Years ranging from 2005 to 2024
+- Both Manual and Automatic transmissions
+
+* Validate that all seller_id values reference existing users with role = 'seller'.
+* Save the insert script as cars_insert.sql file.
+* This maps to Frontend US008 (Add Car Listing)."
+4,Storing Purchase Information – SQL,US004,"As a developer, I want to create a table to store purchase transactions so that car sales are tracked in the system.","* Prepare a SQL query to create table to store purchase information. The SQL table should be named purchases.
+The table should have columns for:
+- purchase_id: INT, Primary Key, AUTO_INCREMENT
+- car_id: INT, NOT NULL, FOREIGN KEY referencing cars(car_id)
+- buyer_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- seller_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- purchase_date: DATE, NOT NULL, DEFAULT CURRENT_DATE
+- amount: DECIMAL(10,2), NOT NULL
+- payment_method: ENUM('Cash', 'Bank Transfer', 'EMI'), NOT NULL
+
+* The purchase_id should auto-increment with each new entry.
+* Both buyer_id and seller_id must reference existing users.
+* Insert 5 purchase records into this table. Create the insert script and save as purchases.sql file.
+* This maps to Frontend US012 (Purchase Car) and US014 (Purchase History)."
+5,Storing Wishlist Data – SQL,US005,"As a developer, I want to create a table to store wishlist information so that buyers can save cars they are interested in.","* The SQL table should be named wishlists.
+The table should have columns for:
+- wishlist_id: INT, Primary Key, AUTO_INCREMENT
+- user_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- car_id: INT, NOT NULL, FOREIGN KEY referencing cars(car_id)
+- added_date: DATETIME, DEFAULT CURRENT_TIMESTAMP
+
+* Add a UNIQUE constraint on the combination of (user_id, car_id) to prevent duplicate wishlist entries for the same car by the same user.
+* The wishlist_id should auto-increment with each new entry.
+* Insert 5 wishlist entries to this table. Save the insert script as wishlists.sql file.
+* This maps to Frontend US009 (Wishlist Page)."
+6,Storing Reviews and Ratings – SQL,US006,"As a developer, I want to create a table to store seller reviews and ratings so that buyers can rate sellers after purchase.","* The SQL table should be named reviews.
+The table should have columns for:
+- review_id: INT, Primary Key, AUTO_INCREMENT
+- seller_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- buyer_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- purchase_id: INT, NOT NULL, FOREIGN KEY referencing purchases(purchase_id)
+- rating: INT, NOT NULL, CHECK (rating >= 1 AND rating <= 5)
+- comment: VARCHAR(200)
+- review_date: DATE, DEFAULT CURRENT_DATE
+
+* Add a UNIQUE constraint on purchase_id to ensure a buyer can only submit one review per purchase.
+* The review_id should auto-increment with each new entry.
+* Insert 5 review records with varied ratings (1 to 5). Save as reviews.sql file.
+* This maps to Frontend US013 (Seller Reviews and Ratings)."
+7,Storing Car Views (Recently Viewed) – SQL,US007,"As a developer, I want to create a table to track car views so that the system can display recently viewed cars and view counts.","* The SQL table should be named car_views.
+The table should have columns for:
+- view_id: INT, Primary Key, AUTO_INCREMENT
+- user_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- car_id: INT, NOT NULL, FOREIGN KEY referencing cars(car_id)
+- viewed_at: DATETIME, DEFAULT CURRENT_TIMESTAMP
+
+* The view_id should auto-increment with each new entry.
+* Insert 10 car view records with varying users and cars. Save as car_views.sql file.
+* This table supports both the Recently Viewed feature (Frontend US010) and the View Count tracking on Car Listings (Frontend US006)."
+8,Storing Feedback – SQL,US008,"As a developer, I want to create a table to store user feedback and support queries so that customer concerns are recorded.","* The SQL table should be named feedbacks.
+The table should have columns for:
+- feedback_id: INT, Primary Key, AUTO_INCREMENT
+- user_id: VARCHAR(20), NOT NULL, FOREIGN KEY referencing users(user_id)
+- subject: ENUM('General Inquiry', 'Report a Bug', 'Report Fraud', 'Feedback', 'Other'), NOT NULL
+- message: VARCHAR(500), NOT NULL
+- submitted_date: DATETIME, DEFAULT CURRENT_TIMESTAMP
+
+* The feedback_id should auto-increment with each new entry.
+* Insert 3 feedback entries. Save the script as feedbacks.sql file.
+* This maps to Frontend US015 (Contact Support and Help)."
+9,Car Health Score Calculation – SQL,US009,"As a developer, I want to calculate a car health score using SQL so that buyers can assess car condition from the database.","* Prepare a SQL SELECT query that calculates the health score for each car using the formula:
+  health_score = 100 - (YEAR(CURDATE()) - year) * 3 - (mileage / 10000) * 2
+  The score should be clamped between 0 and 100 using GREATEST and LEAST functions.
+
+* The query should display:
+- car_id, make, model, year, mileage, price
+- calculated health_score
+- A health_grade column using CASE:
+  - 'Excellent' when health_score >= 70
+  - 'Good' when health_score >= 40 AND health_score < 70
+  - 'Poor' when health_score < 40
+
+* Order results by health_score DESC.
+* Only include cars where status = 'available'.
+* This maps to Frontend US004 (Featured Cars sorted by Health Score) and US007 (Car Details Health Score display)."
+10,Fraud Detection Flag – SQL,US010,"As a developer, I want to detect potentially fraudulent car listings using SQL so that buyers are warned about suspicious pricing.","* Prepare a SQL query that identifies cars whose price deviates more than 40% below the average price for the same make and year.
+
+* Step 1 - Calculate average price per make and year:
+  SELECT make, year, AVG(price) AS avg_price FROM cars GROUP BY make, year
+
+* Step 2 - Flag fraudulent listings using a subquery or CTE:
+  SELECT c.car_id, c.make, c.model, c.year, c.price, avg_tbl.avg_price,
+  ROUND(((avg_tbl.avg_price - c.price) / avg_tbl.avg_price) * 100, 2) AS price_deviation_pct,
+  CASE WHEN c.price < avg_tbl.avg_price * 0.60 THEN 'FLAGGED' ELSE 'NORMAL' END AS fraud_flag
+  FROM cars c JOIN (SELECT make, year, AVG(price) AS avg_price FROM cars GROUP BY make, year) avg_tbl
+  ON c.make = avg_tbl.make AND c.year = avg_tbl.year
+  WHERE c.status = 'available'
+
+* The query should show car details alongside the average market price and the percentage deviation.
+* This maps to Frontend US006 (Fraud Warning badge) and US007 (Fraud Detection Section)."
+11,Smart Search and Filtering – SQL,US011,"As a developer, I want to create SQL queries for multi-criteria car filtering so that buyers can search cars by various attributes.","* Prepare the following filter queries for available cars (status = 'available'):
+
+1. Filter by Price Range:
+  SELECT * FROM cars WHERE price BETWEEN 200000 AND 800000 AND status = 'available' ORDER BY price ASC;
+
+2. Filter by Make (Brand):
+  SELECT * FROM cars WHERE make IN ('Maruti', 'Hyundai') AND status = 'available';
+
+3. Filter by Fuel Type:
+  SELECT * FROM cars WHERE fuel_type = 'Diesel' AND status = 'available';
+
+4. Filter by Year Range:
+  SELECT * FROM cars WHERE year BETWEEN 2018 AND 2024 AND status = 'available';
+
+5. Filter by Transmission:
+  SELECT * FROM cars WHERE transmission = 'Automatic' AND status = 'available';
+
+6. Combined Multi-Filter query:
+  SELECT * FROM cars WHERE price BETWEEN 300000 AND 1000000 AND fuel_type IN ('Petrol', 'Diesel') AND year >= 2015 AND transmission = 'Manual' AND status = 'available' ORDER BY price ASC;
+
+7. Sort by Newest First:
+  SELECT * FROM cars WHERE status = 'available' ORDER BY listing_date DESC;
+
+8. Sort by Health Score (using calculated column):
+  SELECT *, GREATEST(0, LEAST(100, 100 - (YEAR(CURDATE()) - year) * 3 - (mileage / 10000) * 2)) AS health_score FROM cars WHERE status = 'available' ORDER BY health_score DESC;
+
+* This maps to Frontend US006 (Smart Filter Panel and Sorting Options)."
+12,Car Recommendation Queries – SQL,US012,"As a developer, I want to create recommendation queries so that buyers see personalized car suggestions on the homepage.","* Prepare the following recommendation queries:
+
+1. Recommend cars based on a buyer's last viewed car (price range ±20% and same fuel type):
+  SELECT c.* FROM cars c WHERE c.status = 'available' AND c.fuel_type = (SELECT fuel_type FROM cars WHERE car_id = <last_viewed_car_id>) AND c.price BETWEEN (SELECT price * 0.80 FROM cars WHERE car_id = <last_viewed_car_id>) AND (SELECT price * 1.20 FROM cars WHERE car_id = <last_viewed_car_id>) AND c.car_id != <last_viewed_car_id> LIMIT 3;
+
+2. Featured cars (top 4 by highest health score):
+  SELECT *, GREATEST(0, LEAST(100, 100 - (YEAR(CURDATE()) - year) * 3 - (mileage / 10000) * 2)) AS health_score FROM cars WHERE status = 'available' ORDER BY health_score DESC LIMIT 4;
+
+3. Most recently listed cars (fallback when no view history):
+  SELECT * FROM cars WHERE status = 'available' ORDER BY listing_date DESC LIMIT 3;
+
+4. People Also Viewed (cars with same fuel type or similar price ±15%, excluding current car):
+  SELECT * FROM cars WHERE status = 'available' AND car_id != <current_car_id> AND (fuel_type = <current_fuel_type> OR price BETWEEN <current_price> * 0.85 AND <current_price> * 1.15) LIMIT 3;
+
+* This maps to Frontend US004 (Recommendation Section) and US007 (People Also Viewed)."
+13,Wishlist Operations – SQL,US013,"As a developer, I want to create SQL queries for wishlist operations so that buyers can save and manage their favorite cars.","* Prepare the following wishlist queries:
+
+1. Add a car to wishlist:
+  INSERT INTO wishlists (user_id, car_id) VALUES ('<buyer_id>', <car_id>);
+
+2. Remove a car from wishlist:
+  DELETE FROM wishlists WHERE user_id = '<buyer_id>' AND car_id = <car_id>;
+
+3. Retrieve all wishlisted cars for a buyer with car details and availability status:
+  SELECT w.wishlist_id, w.added_date, c.car_id, c.make, c.model, c.year, c.price, c.fuel_type, c.status FROM wishlists w JOIN cars c ON w.car_id = c.car_id WHERE w.user_id = '<buyer_id>' ORDER BY w.added_date DESC;
+
+4. Count total wishlisted cars for a buyer:
+  SELECT COUNT(*) AS wishlist_count FROM wishlists WHERE user_id = '<buyer_id>';
+
+5. Remove car from wishlist after purchase (cleanup):
+  DELETE FROM wishlists WHERE car_id = <car_id>;
+
+6. Check if a car is already in a buyer's wishlist (prevent duplicates):
+  SELECT COUNT(*) AS already_exists FROM wishlists WHERE user_id = '<buyer_id>' AND car_id = <car_id>;
+
+* This maps to Frontend US009 (Wishlist Page)."
+14,Recently Viewed and View Count – SQL,US014,"As a developer, I want to create queries for recently viewed cars and view count tracking so that browsing history and popularity are recorded.","* Prepare the following queries:
+
+1. Record a car view:
+  INSERT INTO car_views (user_id, car_id) VALUES ('<buyer_id>', <car_id>);
+
+2. Increment view count on the cars table:
+  UPDATE cars SET view_count = view_count + 1 WHERE car_id = <car_id>;
+
+3. Retrieve 10 most recently viewed cars for a buyer (no duplicates, latest timestamp only):
+  SELECT cv.car_id, c.make, c.model, c.year, c.price, c.fuel_type, c.status, MAX(cv.viewed_at) AS last_viewed FROM car_views cv JOIN cars c ON cv.car_id = c.car_id WHERE cv.user_id = '<buyer_id>' GROUP BY cv.car_id, c.make, c.model, c.year, c.price, c.fuel_type, c.status ORDER BY last_viewed DESC LIMIT 10;
+
+4. Get most popular cars (highest view count):
+  SELECT car_id, make, model, year, price, view_count FROM cars WHERE status = 'available' ORDER BY view_count DESC LIMIT 5;
+
+* This maps to Frontend US010 (Recently Viewed Cars) and US006 (View Count display)."
+15,Seller Rating and Reviews – SQL,US015,"As a developer, I want to create queries for seller ratings and review retrieval so that buyers can evaluate sellers before purchasing.","* Prepare the following queries:
+
+1. Calculate average rating per seller:
+  SELECT r.seller_id, u.full_name, ROUND(AVG(r.rating), 1) AS avg_rating, COUNT(r.review_id) AS total_reviews FROM reviews r JOIN users u ON r.seller_id = u.user_id GROUP BY r.seller_id, u.full_name;
+
+2. Retrieve all reviews for a specific seller (most recent first):
+  SELECT r.review_id, u.full_name AS buyer_name, r.rating, r.comment, r.review_date FROM reviews r JOIN users u ON r.buyer_id = u.user_id WHERE r.seller_id = '<seller_id>' ORDER BY r.review_date DESC;
+
+3. Insert a new review after purchase:
+  INSERT INTO reviews (seller_id, buyer_id, purchase_id, rating, comment) VALUES ('<seller_id>', '<buyer_id>', <purchase_id>, <rating>, '<comment>');
+
+4. Check if buyer already reviewed a specific purchase (prevent duplicate reviews):
+  SELECT COUNT(*) AS already_reviewed FROM reviews WHERE buyer_id = '<buyer_id>' AND purchase_id = <purchase_id>;
+
+5. Get total cars sold by a seller:
+  SELECT COUNT(*) AS total_sold FROM purchases WHERE seller_id = '<seller_id>';
+
+6. Seller dashboard summary (total listed, sold, available, avg rating):
+  SELECT u.user_id, u.full_name, (SELECT COUNT(*) FROM cars WHERE seller_id = u.user_id) AS total_listed, (SELECT COUNT(*) FROM cars WHERE seller_id = u.user_id AND status = 'sold') AS cars_sold, (SELECT COUNT(*) FROM cars WHERE seller_id = u.user_id AND status = 'available') AS cars_available, (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE seller_id = u.user_id) AS avg_rating FROM users u WHERE u.user_id = '<seller_id>';
+
+* This maps to Frontend US005 (Seller Dashboard metrics), US007 (Seller Rating display), and US013 (Seller Reviews and Ratings)."
+16,Purchase History and Analytics – SQL,US016,"As a developer, I want to create queries for purchase history and buyer analytics so that buyers can track their transactions.","* Prepare the following queries:
+
+1. Retrieve all purchases for a buyer with car and seller details:
+  SELECT p.purchase_id, c.make, c.model, c.year, p.purchase_date, p.amount, p.payment_method, u.full_name AS seller_name FROM purchases p JOIN cars c ON p.car_id = c.car_id JOIN users u ON p.seller_id = u.user_id WHERE p.buyer_id = '<buyer_id>' ORDER BY p.purchase_date DESC;
+
+2. Buyer purchase summary (total spent, total cars bought, most recent purchase):
+  SELECT COUNT(*) AS total_cars_bought, SUM(amount) AS total_spent, MAX(purchase_date) AS most_recent_purchase FROM purchases WHERE buyer_id = '<buyer_id>';
+
+3. Update car status to 'sold' after purchase:
+  UPDATE cars SET status = 'sold' WHERE car_id = <car_id>;
+
+4. Insert a new purchase record:
+  INSERT INTO purchases (car_id, buyer_id, seller_id, amount, payment_method) VALUES (<car_id>, '<buyer_id>', '<seller_id>', <amount>, '<payment_method>');
+
+* This maps to Frontend US012 (Purchase Car) and US014 (Purchase History)."
+17,Price Comparison and Market Analysis – SQL,US017,"As a developer, I want to create price comparison queries so that buyers can see how a car's price compares to the market average.","* Prepare the following queries:
+
+1. Market average price per make and year:
+  SELECT make, year, ROUND(AVG(price), 2) AS avg_price, COUNT(*) AS total_listings FROM cars GROUP BY make, year ORDER BY make, year;
+
+2. Price comparison for a specific car against market average:
+  SELECT c.car_id, c.make, c.model, c.year, c.price, avg_tbl.avg_price, ROUND(((c.price - avg_tbl.avg_price) / avg_tbl.avg_price) * 100, 2) AS price_diff_pct, CASE WHEN c.price < avg_tbl.avg_price THEN 'Below Average' WHEN c.price > avg_tbl.avg_price THEN 'Above Average' ELSE 'At Average' END AS price_position FROM cars c JOIN (SELECT make, year, AVG(price) AS avg_price FROM cars GROUP BY make, year) avg_tbl ON c.make = avg_tbl.make AND c.year = avg_tbl.year WHERE c.car_id = <car_id>;
+
+3. EMI calculation query (simulated for 9% annual interest):
+  SELECT c.car_id, c.price, ROUND(c.price * (0.0075 * POWER(1.0075, 12)) / (POWER(1.0075, 12) - 1), 2) AS emi_12_months, ROUND(c.price * (0.0075 * POWER(1.0075, 24)) / (POWER(1.0075, 24) - 1), 2) AS emi_24_months, ROUND(c.price * (0.0075 * POWER(1.0075, 36)) / (POWER(1.0075, 36) - 1), 2) AS emi_36_months FROM cars c WHERE c.car_id = <car_id>;
+
+* This maps to Frontend US007 (Price Comparison Indicator) and US012 (EMI Calculator)."
+18,User Authentication Queries – SQL,US018,"As a developer, I want to create authentication queries so that the system can validate user login credentials.","* Prepare the following queries:
+
+1. Validate buyer login credentials:
+  SELECT user_id, full_name, role FROM users WHERE user_id = '<user_id>' AND password = '<password>' AND role = 'buyer';
+
+2. Validate seller login credentials:
+  SELECT user_id, full_name, role FROM users WHERE user_id = '<user_id>' AND password = '<password>' AND role = 'seller';
+
+3. Check for duplicate user_id during registration:
+  SELECT COUNT(*) AS id_exists FROM users WHERE user_id = '<user_id>';
+
+4. Check for duplicate email during registration:
+  SELECT COUNT(*) AS email_exists FROM users WHERE email = '<email>';
+
+5. Insert new user during registration:
+  INSERT INTO users (user_id, full_name, email, mobile_number, password, city, role) VALUES ('<user_id>', '<full_name>', '<email>', '<mobile_number>', '<password>', '<city>', '<role>');
+
+* This maps to Frontend US001 (Registration), US002 (Buyer Login), and US003 (Seller Login)."
