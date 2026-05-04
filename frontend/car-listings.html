@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Cars — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="listings-layout">
+
+  <!-- ── Filter sidebar ───────────────────────────── -->
+  <aside class="filter-panel">
+    <div class="filter-panel-title">
+      Filters
+      <button class="filter-clear-btn" onclick="clearFilters()">Clear All</button>
+    </div>
+
+    <!-- Price range -->
+    <div class="filter-section">
+      <label class="filter-label">Price Range (₹)</label>
+      <div class="price-inputs">
+        <input type="number" id="f-price-min" placeholder="Min" min="0">
+        <input type="number" id="f-price-max" placeholder="Max" min="0">
+      </div>
+      <button class="filter-apply-btn" onclick="applyFilters()">Apply</button>
+    </div>
+
+    <!-- Brand -->
+    <div class="filter-section">
+      <label class="filter-label">Brand / Make</label>
+      <div class="checkbox-list" id="f-make-list"></div>
+    </div>
+
+    <!-- Fuel type -->
+    <div class="filter-section">
+      <label class="filter-label">Fuel Type</label>
+      <div class="checkbox-list" id="f-fuel-list">
+        <label class="checkbox-item"><input type="checkbox" value="Petrol" onchange="applyFilters()"> Petrol</label>
+        <label class="checkbox-item"><input type="checkbox" value="Diesel" onchange="applyFilters()"> Diesel</label>
+        <label class="checkbox-item"><input type="checkbox" value="CNG"    onchange="applyFilters()"> CNG</label>
+        <label class="checkbox-item"><input type="checkbox" value="Electric" onchange="applyFilters()"> Electric</label>
+      </div>
+    </div>
+
+    <!-- Transmission -->
+    <div class="filter-section">
+      <label class="filter-label">Transmission</label>
+      <div class="checkbox-list" id="f-trans-list">
+        <label class="checkbox-item"><input type="checkbox" value="Manual"    onchange="applyFilters()"> Manual</label>
+        <label class="checkbox-item"><input type="checkbox" value="Automatic" onchange="applyFilters()"> Automatic</label>
+      </div>
+    </div>
+
+    <!-- Year range -->
+    <div class="filter-section">
+      <label class="filter-label">Year Range</label>
+      <div class="price-inputs">
+        <select id="f-year-from"><option value="">From</option></select>
+        <select id="f-year-to"><option value="">To</option></select>
+      </div>
+    </div>
+
+    <!-- Health score -->
+    <div class="filter-section">
+      <label class="filter-label">Health Score</label>
+      <select id="f-health" onchange="applyFilters()">
+        <option value="">All</option>
+        <option value="80">Excellent (80+)</option>
+        <option value="60">Good (60–79)</option>
+        <option value="40">Fair (40–59)</option>
+      </select>
+    </div>
+  </aside>
+
+  <!-- ── Listings main ─────────────────────────────── -->
+  <main class="listings-main">
+
+    <div class="sort-bar">
+      <span class="result-count" id="result-count">Loading…</span>
+      <select class="sort-select" id="sort-select" onchange="applyFilters()">
+        <option value="default">Sort: Newest First</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+        <option value="health-desc">Highest Health Score</option>
+      </select>
+    </div>
+
+    <div id="car-grid" class="car-grid"></div>
+
+  </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cars.js"></script>
+<script src="js/seed-data.js"></script>
+<script>
+  const user = requireBuyer();
+  let allAvailable = [];
+
+  if (user) {
+    seedDataIfEmpty();
+    mountNav('nav-placeholder', renderBuyerNav('browse'), user);
+    init();
+  }
+
+  function init() {
+    allAvailable = getCars().filter(c => c.status === 'available');
+
+    /* Populate make checkboxes dynamically */
+    const makes = [...new Set(allAvailable.map(c => c.make))].sort();
+    document.getElementById('f-make-list').innerHTML = makes.map(m =>
+      `<label class="checkbox-item"><input type="checkbox" value="${m}" onchange="applyFilters()"> ${m}</label>`
+    ).join('');
+
+    /* Populate year dropdowns */
+    const years = [...new Set(allAvailable.map(c => c.year))].sort((a,b) => a - b);
+    const fromSel = document.getElementById('f-year-from');
+    const toSel   = document.getElementById('f-year-to');
+    years.forEach(y => {
+      fromSel.innerHTML += `<option value="${y}">${y}</option>`;
+      toSel.innerHTML   += `<option value="${y}">${y}</option>`;
+    });
+    fromSel.addEventListener('change', applyFilters);
+    toSel.addEventListener('change', applyFilters);
+
+    /* Apply any search query from URL */
+    const q = getQueryParam('q');
+    if (q) {
+      document.title = `"${q}" — Browse Cars — UsedCarMart`;
+    }
+
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const q        = (getQueryParam('q') || '').toLowerCase();
+    const priceMin = parseFloat(document.getElementById('f-price-min').value) || 0;
+    const priceMax = parseFloat(document.getElementById('f-price-max').value) || Infinity;
+    const yearFrom = parseInt(document.getElementById('f-year-from').value)   || 0;
+    const yearTo   = parseInt(document.getElementById('f-year-to').value)     || 9999;
+    const health   = parseInt(document.getElementById('f-health').value)      || 0;
+    const sort     = document.getElementById('sort-select').value;
+
+    const checkedMakes  = checkedValues('f-make-list');
+    const checkedFuels  = checkedValues('f-fuel-list');
+    const checkedTrans  = checkedValues('f-trans-list');
+
+    let filtered = allAvailable.filter(car => {
+      if (q && !`${car.make} ${car.model}`.toLowerCase().includes(q)) return false;
+      if (car.price < priceMin || car.price > priceMax) return false;
+      if (checkedMakes.length  && !checkedMakes.includes(car.make))        return false;
+      if (checkedFuels.length  && !checkedFuels.includes(car.fuelType))    return false;
+      if (checkedTrans.length  && !checkedTrans.includes(car.transmission)) return false;
+      if (car.year < yearFrom || car.year > yearTo) return false;
+      if (health && (car.healthScore ?? 0) < health) return false;
+      return true;
+    });
+
+    /* Sort */
+    if (sort === 'price-asc')    filtered.sort((a,b) => a.price - b.price);
+    else if (sort === 'price-desc')   filtered.sort((a,b) => b.price - a.price);
+    else if (sort === 'health-desc')  filtered.sort((a,b) => (b.healthScore??0) - (a.healthScore??0));
+    else filtered.sort((a,b) => new Date(b.listingDate) - new Date(a.listingDate));
+
+    document.getElementById('result-count').textContent =
+      `Showing ${filtered.length} of ${allAvailable.length} cars`;
+
+    document.getElementById('car-grid').innerHTML = filtered.length
+      ? filtered.map(c => buildCarCard(c, user.id, true)).join('')
+      : `<div class="empty-state" style="grid-column:1/-1;">
+           <div class="empty-icon">🔍</div>
+           <h3>No cars found</h3>
+           <p>Try adjusting your filters or search term.</p>
+           <button class="btn btn-secondary" style="width:auto;" onclick="clearFilters()">Clear Filters</button>
+         </div>`;
+  }
+
+  function checkedValues(containerId) {
+    return [...document.querySelectorAll(`#${containerId} input:checked`)].map(i => i.value);
+  }
+
+  function clearFilters() {
+    document.getElementById('f-price-min').value = '';
+    document.getElementById('f-price-max').value = '';
+    document.getElementById('f-year-from').value = '';
+    document.getElementById('f-year-to').value   = '';
+    document.getElementById('f-health').value    = '';
+    document.getElementById('sort-select').value = 'default';
+    document.querySelectorAll('.filter-panel input[type="checkbox"]').forEach(cb => cb.checked = false);
+    applyFilters();
+  }
+</script>
+
+</body>
+</html>

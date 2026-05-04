@@ -8,28 +8,124 @@
 </head>
 <body>
 
-<div class="dashboard-stub">
-  <div class="brand-logo" style="font-size:2rem;font-weight:800;color:#1a2e4a;">
-    UsedCar<span style="color:#f97316;">Mart</span>
+<div id="nav-placeholder"></div>
+
+<div class="page-wrapper">
+
+  <!-- Performance metrics -->
+  <div class="section-header" style="margin-bottom:1.25rem;">
+    <h2 class="section-title">Seller Dashboard</h2>
+    <a href="add-car.html" class="btn btn-primary" style="width:auto;padding:0.55rem 1.2rem;font-size:0.88rem;margin-top:0;">+ Add New Car</a>
   </div>
-  <p class="welcome-msg" id="welcome-msg">Welcome!</p>
-  <span class="badge badge-seller">SELLER</span>
-  <p class="coming-soon">Seller Dashboard — coming in US005</p>
-  <a href="login-seller.html" class="btn btn-secondary" style="width:auto;margin-top:1rem;" id="logout-btn">Logout</a>
+
+  <div class="metrics-row" id="metrics-row">
+    <div class="metric-card">
+      <div class="metric-value" id="m-listed">—</div>
+      <div class="metric-label">Total Listed</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="m-sold">—</div>
+      <div class="metric-label">Cars Sold</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="m-available">—</div>
+      <div class="metric-label">Available</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value stars" id="m-rating">—</div>
+      <div class="metric-label" id="m-rating-label">Avg Rating</div>
+    </div>
+  </div>
+
+  <!-- Active listings -->
+  <div class="section-header">
+    <h2 class="section-title">My Active Listings</h2>
+  </div>
+
+  <div id="listings-grid" class="car-grid">
+    <div class="empty-state"><p>Loading…</p></div>
+  </div>
+
+</div>
+
+<!-- Contact seller modal (reused for seller's own cards) -->
+<div class="modal-overlay" id="contact-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('contact-modal').classList.remove('visible')">&times;</button>
+    <h3 style="margin-bottom:1rem;color:var(--primary);">Your Contact Details</h3>
+    <div id="contact-modal-content" class="contact-modal-info"></div>
+  </div>
 </div>
 
 <script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cars.js"></script>
+<script src="js/seed-data.js"></script>
 <script>
-  const user = getCurrentUser();
-  if (!user || user.role !== 'Seller') {
-    window.location.href = 'login-seller.html';
-  } else {
-    document.getElementById('welcome-msg').textContent = 'Welcome, ' + user.fullName + ' (Seller)!';
-    document.getElementById('logout-btn').addEventListener('click', function (e) {
-      e.preventDefault();
-      clearCurrentUser();
-      window.location.href = 'login-seller.html';
-    });
+  const user = requireSeller();
+  if (user) {
+    seedDataIfEmpty();
+    mountNav('nav-placeholder', renderSellerNav('dashboard'), user);
+    renderDashboard(user);
+  }
+
+  function renderDashboard(seller) {
+    const allCars = getCars().filter(c => c.sellerId === seller.id);
+    const sold    = allCars.filter(c => c.status === 'sold');
+    const avail   = allCars.filter(c => c.status === 'available');
+    const rating  = getSellerRating(seller.id);
+
+    document.getElementById('m-listed').textContent    = allCars.length;
+    document.getElementById('m-sold').textContent      = sold.length;
+    document.getElementById('m-available').textContent = avail.length;
+
+    if (rating) {
+      document.getElementById('m-rating').textContent       = renderStars(rating.avg);
+      document.getElementById('m-rating-label').textContent = `${rating.avg}/5 (${rating.count} reviews)`;
+    } else {
+      document.getElementById('m-rating').textContent       = '—';
+      document.getElementById('m-rating-label').textContent = 'No reviews yet';
+    }
+
+    if (!avail.length) {
+      document.getElementById('listings-grid').innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="empty-icon">🚗</div>
+          <h3>No active listings</h3>
+          <p>You have no available cars listed right now.</p>
+          <a href="add-car.html" class="btn btn-primary" style="width:auto;">Add Your First Car</a>
+        </div>`;
+      return;
+    }
+
+    document.getElementById('listings-grid').innerHTML = avail.map(car => buildSellerCard(car)).join('');
+  }
+
+  function buildSellerCard(car) {
+    const score = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
+    const band  = getHealthBand(score);
+    const bg    = makeColor(car.make);
+    return `
+<div class="car-card">
+  <div class="car-img-placeholder" style="background:${bg}">${car.make[0]}</div>
+  <div class="car-card-body">
+    <div class="car-card-header">
+      <h3 class="car-card-title">${car.make} ${car.model}</h3>
+      ${car.fraudFlag ? `<span title="Price Alert" style="font-size:1.1rem;">⚠️</span>` : ''}
+    </div>
+    <p class="car-subtitle">${car.year} &bull; ${car.fuelType} &bull; ${car.transmission}</p>
+    <div class="car-price">${formatPrice(car.price)}</div>
+    <div class="car-card-footer">
+      <span class="health-badge ${band.cls}">&#9679; ${score} ${band.label}</span>
+      <span class="view-count">&#128065; ${car.viewCount || 0} views</span>
+    </div>
+    ${car.fraudFlag ? `<div class="fraud-badge">&#9888; Price Alert — check pricing</div>` : ''}
+    <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+      <button class="btn btn-secondary" style="flex:1;padding:0.45rem;font-size:0.8rem;"
+        onclick="window.location.href='car-details.html?id=${car.id}'">View</button>
+    </div>
+  </div>
+</div>`;
   }
 </script>
 

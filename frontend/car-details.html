@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Details — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div id="page-content">
+  <!-- injected by JS -->
+</div>
+
+<!-- Contact seller modal -->
+<div class="modal-overlay" id="contact-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('contact-modal').classList.remove('visible')">&times;</button>
+    <h3 style="margin-bottom:1rem;color:var(--primary);">Seller Contact Details</h3>
+    <div id="contact-info" class="contact-modal-info"></div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cars.js"></script>
+<script src="js/seed-data.js"></script>
+<script>
+  const user  = requireBuyer();
+  const carId = getQueryParam('id');
+
+  if (user) {
+    seedDataIfEmpty();
+    mountNav('nav-placeholder', renderBuyerNav('browse'), user);
+    loadCarDetails(user, carId);
+  }
+
+  function loadCarDetails(user, carId) {
+    if (!carId) { document.getElementById('page-content').innerHTML = notFound(); return; }
+
+    const allCars = getCars();
+    const car     = allCars.find(c => c.id === carId);
+    if (!car)     { document.getElementById('page-content').innerHTML = notFound(); return; }
+
+    /* Increment view count + add to recently viewed */
+    car.viewCount = (car.viewCount || 0) + 1;
+    updateCar(car);
+    addRecentlyViewed(user.id, carId);
+
+    const score  = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
+    const band   = getHealthBand(score);
+    const bg     = makeColor(car.make);
+    const wished = isInWishlist(user.id, carId);
+
+    /* Fraud & price comparison */
+    const avg        = getAveragePrice(car.make, car.year, allCars);
+    const isFraud    = car.fraudFlag;
+    const diffPct    = avg ? Math.round(((car.price - avg) / avg) * 100) : null;
+    const diffLabel  = diffPct !== null
+      ? (diffPct >= 0 ? `${diffPct}% above` : `${Math.abs(diffPct)}% below`) + ' market average'
+      : 'Not enough data for comparison';
+
+    /* Seller info */
+    const sellers = getUsers();
+    const seller  = sellers.find(u => u.id === car.sellerId);
+    const sellerRating = seller ? getSellerRating(seller.id) : null;
+    const sellerCars   = allCars.filter(c => c.sellerId === car.sellerId && c.status === 'sold').length;
+
+    /* Age & mileage deductions for breakdown */
+    const ageDed = (2026 - car.year) * 3;
+    const milDed = Math.round((car.mileage / 10000) * 2);
+
+    /* People also viewed: same fuel OR similar price ±15%, exclude self */
+    const lo = car.price * 0.85, hi = car.price * 1.15;
+    const alsoViewed = allCars
+      .filter(c => c.id !== carId && c.status === 'available' &&
+        (c.fuelType === car.fuelType || (c.price >= lo && c.price <= hi)))
+      .slice(0, 3);
+
+    document.getElementById('page-content').innerHTML = `
+<div class="car-details-grid">
+
+  <!-- ── Left: main info ──────────────────────────── -->
+  <div>
+    <div class="car-detail-image" style="background:${bg}">${car.make[0]}</div>
+
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+      <h1 class="car-detail-title">${car.make} ${car.model}</h1>
+      <span class="status-badge status-${car.status}">${car.status === 'available' ? '✓ Available' : 'SOLD'}</span>
+    </div>
+
+    <div class="car-detail-price">${formatPrice(car.price)}</div>
+
+    <table class="specs-table">
+      <tr><td>Fuel Type</td>      <td>${car.fuelType}</td></tr>
+      <tr><td>Transmission</td>   <td>${car.transmission}</td></tr>
+      <tr><td>Mileage</td>        <td>${car.mileage.toLocaleString('en-IN')} km</td></tr>
+      <tr><td>Color</td>          <td>${car.color}</td></tr>
+      <tr><td>Year</td>           <td>${car.year}</td></tr>
+      <tr><td>Listed On</td>      <td>${formatDate(car.listingDate)}</td></tr>
+    </table>
+  </div>
+
+  <!-- ── Right: sidebar ───────────────────────────── -->
+  <div>
+
+    <!-- Health Score -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Car Health Score</div>
+      <div class="health-circle-wrap">
+        <div class="health-circle"
+          style="--score:${score};--hc-color:${band.color}">
+          <div class="health-circle-inner">
+            <span class="health-circle-score">${score}</span>
+            <span class="health-circle-lbl">${band.label}</span>
+          </div>
+        </div>
+        <p class="health-breakdown">
+          Age Deduction: −${ageDed} pts<br>
+          Mileage Deduction: −${milDed} pts
+        </p>
+      </div>
+    </div>
+
+    <!-- Fraud Detection -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Fraud Detection</div>
+      ${isFraud
+        ? `<div class="info-box danger">⚠ Price Alert: This car is priced significantly below market average. Exercise caution.</div>`
+        : `<div class="info-box safe">✓ Price is within market range.</div>`
+      }
+      ${avg !== null ? `
+      <div style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted);">
+        Market Average for ${car.make} ${car.year}:<br>
+        <strong style="color:var(--text)">${formatPrice(avg)}</strong><br>
+        <span style="color:${diffPct < 0 ? 'var(--error)' : 'var(--success)'}">
+          This car is ${diffLabel}
+        </span>
+      </div>` : ''}
+    </div>
+
+    <!-- Seller Info -->
+    ${seller ? `
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Seller Information</div>
+      <div class="seller-row">
+        <div class="seller-avatar">${seller.fullName[0]}</div>
+        <div>
+          <div class="seller-name">${seller.fullName}</div>
+          <div class="seller-meta">${seller.city} &bull; Since ${formatDate(seller.registrationDate)}</div>
+        </div>
+      </div>
+      ${sellerRating
+        ? `<p style="font-size:0.88rem;margin-bottom:0.35rem;">
+             <span class="star-rating">${renderStars(sellerRating.avg)}</span>
+             <strong>${sellerRating.avg}</strong>
+             <span style="color:var(--muted)">(${sellerRating.count} reviews)</span>
+           </p>`
+        : `<p style="font-size:0.82rem;color:var(--muted);">No reviews yet</p>`
+      }
+      <p style="font-size:0.82rem;color:var(--muted);">${sellerCars} cars sold</p>
+      <button class="btn btn-outline" style="width:100%;margin-top:0.75rem;"
+        onclick="showContact()">📞 Contact Seller</button>
+    </div>` : ''}
+
+    <!-- Actions -->
+    <div class="sidebar-card">
+      <div class="action-btns">
+        <button id="wishlist-btn" class="btn ${wished ? 'btn-danger' : 'btn-outline'}"
+          onclick="toggleWishlistDetail('${carId}')">
+          ${wished ? '♥ Remove from Wishlist' : '♡ Add to Wishlist'}
+        </button>
+        ${car.status === 'available'
+          ? `<button class="btn btn-primary" style="margin-top:0;"
+               onclick="window.location.href='purchase.html?id=${carId}'">
+               🛒 Buy This Car
+             </button>`
+          : `<button class="btn btn-primary" style="margin-top:0;opacity:0.5;cursor:not-allowed;" disabled>
+               Car Already Sold
+             </button>`
+        }
+        <button class="btn btn-outline" onclick="handleCompare('${carId}')">
+          ⚖ Compare This Car
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- People also viewed -->
+${alsoViewed.length ? `
+<div class="page-wrapper" style="padding-top:0;">
+  <div class="section-header">
+    <h2 class="section-title">People Also Viewed</h2>
+  </div>
+  <div class="also-viewed-grid">
+    ${alsoViewed.map(c => {
+      const s = c.healthScore ?? calculateHealthScore(c.year, c.mileage);
+      const b = getHealthBand(s);
+      return `
+      <div class="mini-card" onclick="window.location.href='car-details.html?id=${c.id}'">
+        <div class="mini-card-img" style="background:${makeColor(c.make)}">${c.make[0]}</div>
+        <div class="mini-card-body">
+          <div class="mini-card-title">${c.make} ${c.model} ${c.year}</div>
+          <div class="mini-card-price">${formatPrice(c.price)}</div>
+          <span class="health-badge ${b.cls}" style="margin-top:0.35rem;display:inline-block;">${s} ${b.label}</span>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+</div>` : ''}
+`;
+
+    /* Store seller ref for contact modal */
+    window._seller = seller;
+  }
+
+  function notFound() {
+    return `<div class="empty-state" style="padding:5rem 1rem;">
+      <div class="empty-icon">🚫</div>
+      <h3>Car not found</h3>
+      <p>This listing may have been removed.</p>
+      <a href="car-listings.html" class="btn btn-primary" style="width:auto;">Browse Cars</a>
+    </div>`;
+  }
+
+  function toggleWishlistDetail(carId) {
+    const added = toggleWishlist(user.id, carId);
+    const btn   = document.getElementById('wishlist-btn');
+    btn.textContent = added ? '♥ Remove from Wishlist' : '♡ Add to Wishlist';
+    btn.className   = `btn ${added ? 'btn-danger' : 'btn-outline'}`;
+  }
+
+  function handleCompare(carId) {
+    const ok = addToCompare(carId);
+    if (ok) {
+      alert('Added to comparison! Go to Compare Cars to view.');
+    } else {
+      alert('Car already in comparison list, or list is full (max 3).');
+    }
+  }
+
+  function showContact() {
+    const s = window._seller;
+    if (!s) return;
+    document.getElementById('contact-info').innerHTML = `
+      <p><strong>Name:</strong> ${s.fullName}</p>
+      <p><strong>Phone:</strong> ${s.phone}</p>
+      <p><strong>Email:</strong> ${s.email}</p>
+      <p><strong>City:</strong> ${s.city}</p>`;
+    document.getElementById('contact-modal').classList.add('visible');
+  }
+</script>
+
+</body>
+</html>
