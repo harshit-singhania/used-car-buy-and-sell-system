@@ -98,32 +98,12 @@ function calculateHealthScore(year, mileage) {
   const age = Math.max(0, currentYear - carYear);
 
   /*
-    Health score logic:
-    - Starts from 100
-    - Age reduces score
-    - Mileage reduces score
-    - Score is capped between 0 and 100
+    Project formula:
+    score = 100 - (currentYear - carYear) * 3 - (mileage / 10000) * 2
+    Score is capped between 0 and 100.
   */
 
-  let score = 100;
-
-  // Age impact
-  score -= age * 4;
-
-  // Mileage impact
-  if (carMileage > 200000) {
-    score -= 35;
-  } else if (carMileage > 150000) {
-    score -= 28;
-  } else if (carMileage > 100000) {
-    score -= 20;
-  } else if (carMileage > 70000) {
-    score -= 14;
-  } else if (carMileage > 40000) {
-    score -= 8;
-  } else if (carMileage > 20000) {
-    score -= 4;
-  }
+  let score = 100 - (age * 3) - ((carMileage / 10000) * 2);
 
   score = Math.max(0, Math.min(100, Math.round(score)));
 
@@ -133,23 +113,16 @@ function calculateHealthScore(year, mileage) {
 function getHealthBand(score) {
   const value = Number(score || 0);
 
-  if (value >= 80) {
+  if (value >= 70) {
     return {
       label: 'Excellent',
       cls: 'health-good'
     };
   }
 
-  if (value >= 65) {
+  if (value >= 40) {
     return {
       label: 'Good',
-      cls: 'health-good'
-    };
-  }
-
-  if (value >= 45) {
-    return {
-      label: 'Average',
       cls: 'health-average'
     };
   }
@@ -172,26 +145,11 @@ function getAveragePrice(make, year, cars) {
     return null;
   }
 
-  /*
-    First try exact make + year match.
-  */
-  let matchingCars = carList.filter(function (car) {
+  const matchingCars = carList.filter(function (car) {
     return String(car.make || '').trim().toLowerCase() === targetMake &&
            Number(car.year) === targetYear &&
            Number(car.price) > 0;
   });
-
-  /*
-    If very few matches exist, use same make and nearby years.
-  */
-  if (matchingCars.length < 2) {
-    matchingCars = carList.filter(function (car) {
-      const sameMake = String(car.make || '').trim().toLowerCase() === targetMake;
-      const nearbyYear = Math.abs(Number(car.year) - targetYear) <= 2;
-
-      return sameMake && nearbyYear && Number(car.price) > 0;
-    });
-  }
 
   /*
     If still no match, return null.
@@ -220,16 +178,48 @@ function isFraudFlagged(price, make, year, cars) {
     return false;
   }
 
-  /*
-    Fraud flag logic:
-    - More than 35% above market average
-    - More than 45% below market average
-  */
+  const deviationRatio = Math.abs(askingPrice - avgPrice) / avgPrice;
+  return deviationRatio > 0.4;
+}
 
-  const upperLimit = avgPrice * 1.35;
-  const lowerLimit = avgPrice * 0.55;
+/* ─── Reviews and seller ratings ──────────────────────── */
 
-  return askingPrice > upperLimit || askingPrice < lowerLimit;
+const REVIEWS_KEY = 'ucm_reviews';
+
+function getReviews() {
+  try {
+    return JSON.parse(localStorage.getItem(REVIEWS_KEY)) || [];
+  } catch (err) {
+    console.error('Failed to read reviews from localStorage:', err);
+    return [];
+  }
+}
+
+function saveReviews(reviews) {
+  localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+}
+
+function getReviewsForSeller(sellerId) {
+  return getReviews().filter(function (review) {
+    return String(review.sellerId) === String(sellerId);
+  });
+}
+
+function getSellerRatingSummary(sellerId) {
+  const reviews = getReviewsForSeller(sellerId);
+
+  if (!reviews.length) {
+    return null;
+  }
+
+  const avg = reviews.reduce(function (sum, review) {
+    return sum + Number(review.rating || 0);
+  }, 0) / reviews.length;
+
+  return {
+    avg: avg.toFixed(1),
+    count: reviews.length
+  };
 }
 
 /* ─── Visual helper for car cards/placeholders ────────── */
@@ -278,28 +268,6 @@ function markCarAvailable(carId) {
   updateCar(carId, {
     status: 'available'
   });
-}
-
-/* ─── Recently viewed tracking ────────────────────────── */
-
-function addRecentlyViewed(userId, carId) {
-  const key = 'ucm_recently_viewed_' + String(userId || 'guest');
-  const existing = JSON.parse(localStorage.getItem(key)) || [];
-
-  /* Remove if already exists, then add to front */
-  const updated = [
-    carId
-  ].concat(existing.filter(function (id) {
-    return id !== carId;
-  })).slice(0, 10);
-
-  localStorage.setItem(key, JSON.stringify(updated));
-
-  /* Track timestamp of when car was viewed */
-  const timeKey = 'ucm_recently_viewed_times_' + String(userId || 'guest');
-  const times = JSON.parse(localStorage.getItem(timeKey)) || {};
-  times[carId] = new Date().toISOString();
-  localStorage.setItem(timeKey, JSON.stringify(times));
 }
 
 /* ─── Safe demo data helper ───────────────────────────── */

@@ -58,6 +58,48 @@ function hideAlert(alertId) {
   if (el) el.classList.remove('visible');
 }
 
+/* ─── Demo seed users ─────────────────────────────────── */
+
+function seedUsersIfEmpty() {
+  const existing = getUsers();
+  const hasDemoBuyer  = existing.some(u => u.userId === 'demoBuyer');
+  const hasDemoSeller = existing.some(u => u.userId === 'demoSeller');
+
+  const toAdd = [];
+
+  if (!hasDemoBuyer) {
+    toAdd.push({
+      id:               'USR_DEMO_BUYER',
+      userId:           'demoBuyer',
+      fullName:         'Arjun Mehta',
+      email:            'arjun.mehta@demo.com',
+      phone:            '+919876543210',
+      city:             'Mumbai',
+      role:             'Buyer',
+      password:         'Demo@1234',
+      registrationDate: '2026-01-15T08:00:00.000Z'
+    });
+  }
+
+  if (!hasDemoSeller) {
+    toAdd.push({
+      id:               'SELLER_DEMO_1',
+      userId:           'demoSeller',
+      fullName:         'Priya Sharma',
+      email:            'priya.sharma@demo.com',
+      phone:            '+919988776655',
+      city:             'Delhi',
+      role:             'Seller',
+      password:         'Demo@1234',
+      registrationDate: '2025-11-10T09:30:00.000Z'
+    });
+  }
+
+  if (toAdd.length) {
+    saveUsers(existing.concat(toAdd));
+  }
+}
+
 /* ─── Validators ──────────────────────────────────────── */
 
 const validators = {

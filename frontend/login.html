@@ -69,10 +69,17 @@
       Are you a Seller? <a href="login-seller.html">Seller Login &rarr;</a>
     </p>
 
+    <div style="margin-top:1.25rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:0.9rem 1rem;font-size:0.82rem;color:#0369a1;">
+      <strong>Demo Credentials</strong><br>
+      User ID: <code style="background:#e0f2fe;padding:0.1rem 0.35rem;border-radius:4px;">demoBuyer</code> &nbsp;
+      Password: <code style="background:#e0f2fe;padding:0.1rem 0.35rem;border-radius:4px;">Demo@1234</code>
+    </div>
+
   </div>
 </div>
 
 <script src="js/auth.js"></script>
+<script src="js/cars.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -90,8 +97,8 @@
       return;
     }
 
-    console.log('Buyer login page loaded.');
-    console.log('Users from localStorage:', getUsers());
+    seedUsersIfEmpty();
+    if (typeof seedCarsIfEmpty === 'function') seedCarsIfEmpty();
 
     /* Clear banner when user starts editing */
     ['userId', 'password'].forEach(function (id) {

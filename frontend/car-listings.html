@@ -95,17 +95,106 @@
 </div>
 
 <script src="js/auth.js"></script>
-<script src="js/app.js"></script>
 <script src="js/cars.js"></script>
-<script src="js/seed-data.js"></script>
 <script>
-  const user = requireBuyer();
+  let currentUser = null;
   let allAvailable = [];
 
-  if (user) {
-    seedDataIfEmpty();
-    mountNav('nav-placeholder', renderBuyerNav('browse'), user);
+  document.addEventListener('DOMContentLoaded', function () {
+    currentUser = getCurrentUser();
+    if (!currentUser) { window.location.href = 'login.html'; return; }
+    if (String(currentUser.role || '').trim().toLowerCase() !== 'buyer') {
+      clearCurrentUser(); window.location.href = 'login.html'; return;
+    }
+    seedCarsIfEmpty();
+    renderNav(currentUser);
     init();
+  });
+
+  function renderNav(user) {
+    document.getElementById('nav-placeholder').innerHTML = `
+      <header style="background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 8px 24px rgba(15,23,42,0.06);position:sticky;top:0;z-index:20;">
+        <div style="max-width:1180px;margin:0 auto;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+            <span class="badge badge-buyer">BUYER</span>
+          </div>
+          <nav style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <a href="buyer-home.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Home</a>
+            <a href="car-listings.html" style="background:#dbeafe;color:#1d4ed8;text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Browse</a>
+            <a href="wishlist.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Wishlist</a>
+            <a href="recently-viewed.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Recent</a>
+            <a href="my-purchases.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">My Purchases</a>
+            <a href="compare-cars.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Compare Cars</a>
+            <a href="support.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Support</a>
+            <button type="button" onclick="logoutUser()" style="color:var(--text);background:transparent;border:none;font-weight:700;cursor:pointer;padding:0.4rem 0.65rem;border-radius:999px;">Logout</button>
+          </nav>
+        </div>
+      </header>`;
+  }
+
+  function logoutUser() { clearCurrentUser(); window.location.href = 'login.html'; }
+
+  function getQueryParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function buildCarCard(car, userId) {
+    const score = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
+    const band = getHealthBand(score);
+    const bg = makeColor(car.make);
+    const wishlistKey = 'ucm_wishlist_' + String(userId || 'guest');
+    const wishlist = JSON.parse(localStorage.getItem(wishlistKey)) || [];
+    const isWished = wishlist.includes(car.id);
+    return `
+      <div class="car-card">
+        <div class="car-img-placeholder" style="background:${bg}">${escapeHtml(String(car.make || '?').charAt(0))}</div>
+        <div class="car-card-body">
+          <div class="car-card-header">
+            <h3 class="car-card-title">${escapeHtml(car.make)} ${escapeHtml(car.model)}</h3>
+            ${car.fraudFlag ? '<span title="Price Alert" style="font-size:1.1rem;">⚠️</span>' : ''}
+          </div>
+          <p class="car-subtitle">${escapeHtml(String(car.year))} &bull; ${escapeHtml(car.fuelType)} &bull; ${escapeHtml(car.transmission)}</p>
+          <div class="car-price">${formatPrice(car.price)}</div>
+          <div class="car-card-footer">
+            <span class="health-badge ${band.cls}">&bull; ${escapeHtml(String(score))} ${escapeHtml(band.label)}</span>
+            <span class="view-count">&#128065; ${Number(car.viewCount || 0)} views</span>
+          </div>
+          ${car.fraudFlag ? '<div class="fraud-badge">&#9888; Price Alert — compare carefully</div>' : ''}
+          <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn btn-secondary" style="flex:1;padding:0.45rem;font-size:0.8rem;"
+              onclick="window.location.href='car-details.html?id=${escapeAttr(car.id)}'">View Details</button>
+            <button class="btn ${isWished ? 'btn-danger' : 'btn-outline'}" style="flex:1;padding:0.45rem;font-size:0.8rem;"
+              onclick="toggleWishlistCard('${escapeAttr(car.id)}', '${escapeAttr(String(userId))}', this)">
+              ${isWished ? '&#9829; Saved' : '&#9825; Save'}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function toggleWishlistCard(carId, userId, btn) {
+    const key = 'ucm_wishlist_' + String(userId || 'guest');
+    const wishlist = JSON.parse(localStorage.getItem(key)) || [];
+    const exists = wishlist.includes(carId);
+    const updated = exists ? wishlist.filter(id => id !== carId) : [...wishlist, carId];
+    localStorage.setItem(key, JSON.stringify(updated));
+    if (!exists) {
+      const dateKey = 'ucm_wishlist_dates_' + String(userId || 'guest');
+      const dates = JSON.parse(localStorage.getItem(dateKey)) || {};
+      dates[carId] = new Date().toISOString();
+      localStorage.setItem(dateKey, JSON.stringify(dates));
+    }
+    btn.innerHTML = !exists ? '&#9829; Saved' : '&#9825; Save';
+    btn.className = 'btn ' + (!exists ? 'btn-danger' : 'btn-outline');
+    btn.style.cssText = 'flex:1;padding:0.45rem;font-size:0.8rem;';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  function escapeAttr(value) {
+    return String(value ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
   }
 
   function init() {
@@ -171,7 +260,7 @@
       `Showing ${filtered.length} of ${allAvailable.length} cars`;
 
     document.getElementById('car-grid').innerHTML = filtered.length
-      ? filtered.map(c => buildCarCard(c, user.id, true)).join('')
+      ? filtered.map(c => buildCarCard(c, currentUser.id || currentUser.userId)).join('')
       : `<div class="empty-state" style="grid-column:1/-1;">
            <div class="empty-icon">🔍</div>
            <h3>No cars found</h3>

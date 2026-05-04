@@ -656,8 +656,12 @@
 
           <nav class="top-nav-links">
             <a href="buyer-home.html">Home</a>
+            <a href="car-listings.html">Browse</a>
             <a href="wishlist.html">Wishlist</a>
             <a href="recently-viewed.html">Recent</a>
+            <a href="my-purchases.html">My Purchases</a>
+            <a href="compare-cars.html">Compare Cars</a>
+            <a href="support.html">Support</a>
             <button type="button" onclick="logoutBuyer()">Logout</button>
           </nav>
         </div>
@@ -719,7 +723,7 @@
     const wished = isInWishlist(user.id || user.userId, car.id);
 
     const avg = getAveragePrice(car.make, car.year, allCars);
-    const isFraud = car.fraudFlag === true;
+    const isFraud = isFraudFlagged(car.price, car.make, car.year, allCars);
     const diffPct = avg ? Math.round(((Number(car.price) - Number(avg)) / Number(avg)) * 100) : null;
 
     const diffLabel = diffPct !== null
@@ -730,6 +734,7 @@
     currentSeller = seller;
 
     const sellerRating = getSellerRatingSafe(car.sellerId);
+    const sellerRecentReviews = getRecentSellerReviews(car.sellerId, 3);
     const sellerCarsSold = allCars.filter(function (item) {
       return String(item.sellerId) === String(car.sellerId) &&
              String(item.status || '').toLowerCase() === 'sold';
@@ -860,6 +865,27 @@
                     </p>
                   `
                   : '<p style="font-size:0.82rem;color:var(--muted);">No reviews yet</p>'
+              }
+
+              ${
+                sellerRecentReviews.length
+                  ? `
+                    <div style="margin-top:0.55rem;display:grid;gap:0.45rem;">
+                      ${sellerRecentReviews.map(function (review) {
+                        return `
+                          <div style="border:1px solid var(--border);border-radius:10px;padding:0.45rem 0.55rem;background:#f8fafc;">
+                            <div style="font-size:0.76rem;color:var(--muted);display:flex;justify-content:space-between;gap:0.5rem;">
+                              <span>${escapeHtml(review.buyerName || 'Buyer')}</span>
+                              <span>${formatDateSafe(review.reviewDate)}</span>
+                            </div>
+                            <div style="font-size:0.82rem;margin-top:0.15rem;">${renderStars(review.rating)} <strong>${escapeHtml(String(review.rating))}</strong></div>
+                            ${review.comment ? `<div style="font-size:0.78rem;color:var(--text);margin-top:0.15rem;">${escapeHtml(review.comment)}</div>` : ''}
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  `
+                  : ''
               }
 
               <p style="font-size:0.82rem;color:var(--muted);margin-top:0.35rem;">
@@ -1117,24 +1143,17 @@
   }
 
   function getSellerRatingSafe(sellerId) {
-    const ratingsKey = 'ucm_seller_ratings';
-    const ratings = JSON.parse(localStorage.getItem(ratingsKey)) || [];
+    if (typeof getSellerRatingSummary === 'function') {
+      const summary = getSellerRatingSummary(sellerId);
+      if (summary) return summary;
+    }
 
-    const sellerRatings = ratings.filter(function (rating) {
+    const legacyRatings = JSON.parse(localStorage.getItem('ucm_seller_ratings')) || [];
+    const sellerRatings = legacyRatings.filter(function (rating) {
       return String(rating.sellerId) === String(sellerId);
     });
 
     if (!sellerRatings.length) {
-      /*
-        Demo fallback rating for seeded seller listings.
-      */
-      if (String(sellerId || '').startsWith('SELLER_DEMO')) {
-        return {
-          avg: '4.5',
-          count: 12
-        };
-      }
-
       return null;
     }
 
@@ -1142,10 +1161,39 @@
       return sum + Number(rating.rating || 0);
     }, 0) / sellerRatings.length;
 
-    return {
-      avg: avg.toFixed(1),
-      count: sellerRatings.length
-    };
+    return { avg: avg.toFixed(1), count: sellerRatings.length };
+  }
+
+  function getRecentSellerReviews(sellerId, limit) {
+    const max = Number(limit || 3);
+    let reviews = [];
+
+    if (typeof getReviewsForSeller === 'function') {
+      reviews = getReviewsForSeller(sellerId);
+    } else {
+      reviews = (JSON.parse(localStorage.getItem('ucm_reviews')) || []).filter(function (review) {
+        return String(review.sellerId) === String(sellerId);
+      });
+    }
+
+    return reviews
+      .slice()
+      .sort(function (a, b) {
+        return new Date(b.reviewDate || 0) - new Date(a.reviewDate || 0);
+      })
+      .slice(0, max)
+      .map(function (review) {
+        const buyer = findBuyerById(review.buyerId);
+        const buyerName = buyer ? String(buyer.fullName || buyer.userId || 'Buyer').split(' ')[0] : 'Buyer';
+        return Object.assign({}, review, { buyerName: buyerName });
+      });
+  }
+
+  function findBuyerById(buyerId) {
+    const users = JSON.parse(localStorage.getItem('ucm_users')) || [];
+    return users.find(function (user) {
+      return String(user.id || user.userId) === String(buyerId);
+    }) || null;
   }
 
   function renderStars(value) {
@@ -1192,20 +1240,12 @@
     const currentYear = new Date().getFullYear();
     const age = Math.max(0, currentYear - Number(year || currentYear));
 
-    return age * 4;
+    return Math.round(age * 3);
   }
 
   function calculateMileageDeduction(mileage) {
     const value = Number(mileage || 0);
-
-    if (value > 200000) return 35;
-    if (value > 150000) return 28;
-    if (value > 100000) return 20;
-    if (value > 70000) return 14;
-    if (value > 40000) return 8;
-    if (value > 20000) return 4;
-
-    return 0;
+    return Math.round((value / 10000) * 2);
   }
 
   function formatDateSafe(value) {
