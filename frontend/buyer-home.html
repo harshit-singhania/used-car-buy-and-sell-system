@@ -252,6 +252,26 @@
       color: rgba(255, 255, 255, 0.26);
       letter-spacing: -0.08em;
       position: relative;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .car-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .car-visual .car-letter {
+      position: absolute;
+      z-index: 1;
+      font-size: 3.8rem;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.26);
+      letter-spacing: -0.08em;
+      display: none;
     }
 
     .car-status-pill {
@@ -856,6 +876,21 @@
       total + ' result' + (total === 1 ? '' : 's');
   }
 
+  function getCarImage(car) {
+    const imageMap = {
+      'Maruti Swift': 'static/swift.png',
+      'Hyundai Creta': 'static/creta.png',
+      'Honda City': 'static/city.png',
+      'Tata Nexon': 'static/nexon.png',
+      'Toyota Innova': 'static/toyota.png',
+      'Kia Seltos': 'static/kia.png'
+    };
+
+    const key = car.make + ' ' + (car.model.split(' ')[0]);
+    
+    return imageMap[key] || null;
+  }
+
   function renderCars() {
     const grid = document.getElementById('cars-grid');
     const emptyState = document.getElementById('empty-state');
@@ -874,11 +909,13 @@
       card.className = 'car-card';
 
       const band = getHealthBand(car.healthScore);
+      const imagePath = getCarImage(car);
 
       card.innerHTML = `
-        <div class="car-visual" style="background:${makeColor(car.make)};">
+        <div class="car-visual" style="${imagePath ? '' : 'background:' + makeColor(car.make) + ';'}">
+          ${imagePath ? `<img src="${imagePath}" alt="${escapeHtml(car.make)} ${escapeHtml(car.model)}">` : ''}
           <span class="car-status-pill">${escapeHtml(car.status || 'Available')}</span>
-          ${escapeHtml(String(car.make || '?').charAt(0))}
+          ${!imagePath ? `<span class="car-letter">${escapeHtml(String(car.make || '?').charAt(0))}</span>` : ''}
         </div>
 
         <div class="car-body">
