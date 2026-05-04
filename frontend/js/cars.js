@@ -280,6 +280,28 @@ function markCarAvailable(carId) {
   });
 }
 
+/* ─── Recently viewed tracking ────────────────────────── */
+
+function addRecentlyViewed(userId, carId) {
+  const key = 'ucm_recently_viewed_' + String(userId || 'guest');
+  const existing = JSON.parse(localStorage.getItem(key)) || [];
+
+  /* Remove if already exists, then add to front */
+  const updated = [
+    carId
+  ].concat(existing.filter(function (id) {
+    return id !== carId;
+  })).slice(0, 10);
+
+  localStorage.setItem(key, JSON.stringify(updated));
+
+  /* Track timestamp of when car was viewed */
+  const timeKey = 'ucm_recently_viewed_times_' + String(userId || 'guest');
+  const times = JSON.parse(localStorage.getItem(timeKey)) || {};
+  times[carId] = new Date().toISOString();
+  localStorage.setItem(timeKey, JSON.stringify(times));
+}
+
 /* ─── Safe demo data helper ───────────────────────────── */
 
 function seedCarsIfEmpty() {
