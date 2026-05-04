@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="dashboard-stub">
+  <div class="brand-logo" style="font-size:2rem;font-weight:800;color:#1a2e4a;">
+    UsedCar<span style="color:#f97316;">Mart</span>
+  </div>
+  <p class="welcome-msg" id="welcome-msg">Welcome!</p>
+  <span class="badge badge-seller">SELLER</span>
+  <p class="coming-soon">Seller Dashboard — coming in US005</p>
+  <a href="login-seller.html" class="btn btn-secondary" style="width:auto;margin-top:1rem;" id="logout-btn">Logout</a>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+  const user = getCurrentUser();
+  if (!user || user.role !== 'Seller') {
+    window.location.href = 'login-seller.html';
+  } else {
+    document.getElementById('welcome-msg').textContent = 'Welcome, ' + user.fullName + ' (Seller)!';
+    document.getElementById('logout-btn').addEventListener('click', function (e) {
+      e.preventDefault();
+      clearCurrentUser();
+      window.location.href = 'login-seller.html';
+    });
+  }
+</script>
+
+</body>
+</html>
