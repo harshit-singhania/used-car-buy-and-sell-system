@@ -967,10 +967,12 @@
     }
 
     const band = getHealthBand(car.healthScore);
+    const imagePath = getCarImage(car);
 
     document.getElementById('modal-content').innerHTML = `
-      <div class="car-visual" style="background:${makeColor(car.make)};border-radius:14px;margin-bottom:1rem;">
-        ${escapeHtml(String(car.make || '?').charAt(0))}
+      <div class="car-visual" style="${imagePath ? '' : 'background:' + makeColor(car.make) + ';'}border-radius:14px;margin-bottom:1rem;">
+        ${imagePath ? `<img src="${imagePath}" alt="${escapeHtml(car.make)} ${escapeHtml(car.model)}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">` : ''}
+        ${!imagePath ? `<span class="car-letter">${escapeHtml(String(car.make || '?').charAt(0))}</span>` : ''}
       </div>
 
       <h2 style="color:var(--primary);margin-bottom:0.25rem;">

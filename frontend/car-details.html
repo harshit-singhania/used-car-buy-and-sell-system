@@ -655,7 +655,9 @@
           </div>
 
           <nav class="top-nav-links">
-            <a href="buyer-home.htmlef="buyer-home.html#wishlist/a>
+            <a href="buyer-home.html">Home</a>
+            <a href="wishlist.html">Wishlist</a>
+            <a href="recently-viewed.html">Recent</a>
             <button type="button" onclick="logoutBuyer()">Logout</button>
           </nav>
         </div>
@@ -666,6 +668,21 @@
   function logoutBuyer() {
     clearCurrentUser();
     window.location.href = 'login.html';
+  }
+
+  function getCarImage(car) {
+    const imageMap = {
+      'Maruti Swift': 'static/swift.png',
+      'Hyundai Creta': 'static/creta.png',
+      'Honda City': 'static/city.png',
+      'Tata Nexon': 'static/nexon.png',
+      'Toyota Innova': 'static/toyota.png',
+      'Kia Seltos': 'static/kia.png'
+    };
+
+    const key = car.make + ' ' + (car.model.split(' ')[0]);
+    
+    return imageMap[key] || null;
   }
 
   function loadCarDetails(user, carId) {
@@ -698,6 +715,7 @@
     const score = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
     const band = normalizeHealthBand(getHealthBand(score));
     const bg = makeColor(car.make);
+    const imagePath = getCarImage(car);
     const wished = isInWishlist(user.id || user.userId, car.id);
 
     const avg = getAveragePrice(car.make, car.year, allCars);
@@ -725,14 +743,15 @@
     content.innerHTML = `
       <div class="page-wrapper">
         <div class="breadcrumb">
-          <a href="buyer-home.htmlhboard</a> / Car Details / ${escapeHtml(car.id)}
+          <a href="buyer-home.html">Dashboard</a> / Car Details / ${escapeHtml(car.id)}
         </div>
 
         <div class="car-details-grid">
 
           <div class="main-card">
-            <div class="car-detail-image" style="background:${bg};">
-              ${escapeHtml(String(car.make || '?').charAt(0))}
+            <div class="car-detail-image" style="${imagePath ? '' : 'background:' + bg + ';'}">
+              ${imagePath ? `<img src="${imagePath}" alt="${escapeHtml(car.make)} ${escapeHtml(car.model)}" style="width:100%;height:100%;object-fit:cover;">` : ''}
+              ${!imagePath ? escapeHtml(String(car.make || '?').charAt(0)) : ''}
             </div>
 
             <div class="main-card-body">
@@ -878,7 +897,7 @@
                   ⚖ Compare This Car
                 </button>
 
-                <button class="btn btn-outline" onclick="window.location.href='buyer-home.html'
+                <button class="btn btn-outline" onclick="window.location.href='buyer-home.html'">← Back to Home</button>
               </div>
             </div>
 
@@ -925,7 +944,8 @@
             const band = normalizeHealthBand(getHealthBand(score));
 
             return `
-              <div class="mini-card" onclick="window.location.href='car-details.html?id=${encodeURIComponent(car.id)}'ground:${makeColor(car.make)};">
+              <div class="mini-card" onclick="window.location.href='car-details.html?id=${encodeURIComponent(car.id)}'">
+                <div class="mini-card-img" style="background:${makeColor(car.make)};">
                   ${escapeHtml(String(car.make || '?').charAt(0))}
                 </div>
 
@@ -955,7 +975,13 @@
           <div class="empty-icon">🚫</div>
           <h3>Car not found</h3>
           <p>This listing may have been removed or the link may be incorrect.</p>
-          <a href="buyer-home.html" class="btn btn-primary" style="width:auto;margin-top:1remindSellerForCar(car) {
+          <a href="buyer-home.html" class="btn btn-primary" style="width:auto;margin-top:1rem;">Go to Home</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function findSellerForCar(car) {
     const users = typeof getUsers === 'function' ? getUsers() : [];
 
     const sellerFromUsers = users.find(function (user) {
