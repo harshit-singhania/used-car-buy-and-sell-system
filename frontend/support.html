@@ -119,7 +119,7 @@
       </details>
     </section>
 
-    <section class="card" style="margin-top:1rem;">
+    <section class="card" style="margin-top:1rem;" id="feedback-section">
       <h2>Send Feedback</h2>
       <div id="feedback-success" class="alert alert-success"></div>
       <form id="feedback-form" novalidate>
@@ -148,6 +148,10 @@
         </div>
       </form>
     </section>
+
+    <div style="margin-top:1.25rem;text-align:center;">
+      <a class="btn btn-secondary" id="back-home-btn-bottom" href="buyer-home.html">Back to Home</a>
+    </div>
   </main>
 </div>
 
@@ -202,7 +206,9 @@
   function setDefaults() {
     document.getElementById('feedback-name').value = currentUser.fullName || currentUser.userId || 'User';
     const role = String(currentUser.role || '').trim().toLowerCase();
-    document.getElementById('back-home-btn').href = role === 'seller' ? 'seller-dashboard.html' : 'buyer-home.html';
+    const homeUrl = role === 'seller' ? 'seller-dashboard.html' : 'buyer-home.html';
+    document.getElementById('back-home-btn').href = homeUrl;
+    document.getElementById('back-home-btn-bottom').href = homeUrl;
   }
 
   function bindForm() {

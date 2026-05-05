@@ -294,7 +294,7 @@
           <div class="price">${formatPrice(car.price)}</div>
 
           <div class="kv">
-            <div class="chip"><b>Health Score</b>${escapeHtml(score)}</div>
+            <div class="chip"><b>Health Score</b><span class="health-badge ${getHealthBand(score).cls}">${escapeHtml(String(score))} ${escapeHtml(getHealthBand(score).label)}</span></div>
             <div class="chip"><b>Seller</b>${escapeHtml(seller ? (seller.fullName || seller.userId) : (car.sellerId || '—'))}</div>
             <div class="chip"><b>Seller Rating</b>${rating ? `${renderStars(rating.avg)} ${escapeHtml(rating.avg)} (${escapeHtml(rating.count)} reviews)` : 'No reviews yet'}</div>
             <div class="chip"><b>Mileage</b>${formatKilometers(car.mileage)}</div>
