@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Service {
+public class Service{
 
     // ================= DATA STORAGE =================
     private ArrayList<User> users = new ArrayList<>();
@@ -390,9 +390,16 @@ public class Service {
         cars.sort((a, b) -> b.getViewCount() - a.getViewCount());
 
         System.out.println("🔥 Popular Cars:");
-        for (Car c : cars) {
-            System.out.println(c);
+        if (cars.size()>=5){
+            for(int i =0;i<5;i++){
+                System.out.println(cars.get(i));
+            }
+        }else{
+            for( Car c : cars){
+                System.out.println(c);
+            }
         }
+
     }
 
     public void submitFeedback(String msg) {
