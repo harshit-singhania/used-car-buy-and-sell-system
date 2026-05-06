@@ -41,8 +41,18 @@ public class Car {
         this.available = available;
     }
 
+    private int viewCount = 0;
+
+    public int getViewCount() {
+        return viewCount;
+    }
+
+    public void incrementView() {
+        this.viewCount++;
+    }
+
     @Override
     public String toString() {
-        return id + " | " + brand + " | " + model + " | ₹" + price + " | Available: " + available;
+        return id + " | " + brand + " | " + model + " | ₹" + price + " | Available: " + available + " | Views: " + viewCount;
     }
 }

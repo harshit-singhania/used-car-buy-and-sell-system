@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class Main{
+public class Main {
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
@@ -21,6 +21,7 @@ public class Main{
                 System.out.println("5.ViewCar 6.BuyCar 7.Wishlist");
                 System.out.println("8.Recent 9.MyOrders 10.AllOrders");
                 System.out.println("11.Logout 12.Exit");
+                System.out.println("13.Compare 14.Popular 15.Feedback 16.ViewFeedback");
             }
 
             int ch = sc.nextInt();
@@ -66,27 +67,66 @@ public class Main{
                     service.addCar(id, b, m, pr);
                     break;
 
-                case 4: service.browseCars(); break;
-                case 5: service.viewCar(sc.nextInt()); break;
-                case 6: service.purchaseCar(sc.nextInt()); break;
+                case 4:
+                    service.browseCars();
+                    break;
+                case 5:
+                    service.viewCar(sc.nextInt());
+                    break;
+                case 6:
+                    service.purchaseCar(sc.nextInt());
+                    break;
 
                 case 7:
                     System.out.println("1.Add 2.Remove 3.View");
                     int w = sc.nextInt();
-                    if (w == 1) service.addToWishlist(sc.nextInt());
-                    else if (w == 2) service.removeFromWishlist(sc.nextInt());
-                    else service.viewWishlist();
+                    if (w == 1)
+                        service.addToWishlist(sc.nextInt());
+                    else if (w == 2)
+                        service.removeFromWishlist(sc.nextInt());
+                    else
+                        service.viewWishlist();
                     break;
 
-                case 8: service.viewRecentCars(); break;
-                case 9: service.viewMyOrders(); break;
-                case 10: service.viewAllOrders(); break;
-                case 11: service.logout(); break;
+                case 8:
+                    service.viewRecentCars();
+                    break;
+                case 9:
+                    service.viewMyOrders();
+                    break;
+                case 10:
+                    service.viewAllOrders();
+                    break;
+                case 11:
+                    service.logout();
+                    break;
 
                 case 12:
                     System.out.println("Exit...");
                     return;
 
+                case 13:
+                    System.out.print("Enter Car1 ID: ");
+                    int c1 = sc.nextInt();
+                    System.out.print("Enter Car2 ID: ");
+                    int c2 = sc.nextInt();
+                    service.compareCars(c1, c2);
+                    break;
+
+                case 14:
+                    service.viewPopularCars();
+                    break;
+
+                case 15:
+                    sc.nextLine();
+                    System.out.print("Enter feedback: ");
+                    String fb = sc.nextLine();
+                    service.submitFeedback(fb);
+                    break;
+
+                case 16:
+                    service.viewFeedbacks();
+                    break;
                 default:
                     System.out.println("Invalid choice!");
             }

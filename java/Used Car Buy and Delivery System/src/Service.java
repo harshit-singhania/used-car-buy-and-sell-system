@@ -8,6 +8,7 @@ public class Service {
     private ArrayList<Car> wishlist = new ArrayList<>();
     private ArrayList<Car> recent = new ArrayList<>();
     private ArrayList<Order> orders = new ArrayList<>();
+    private ArrayList<String> feedbacks = new ArrayList<>();
 
     // ================= SESSION =================
     private User loggedInUser = null;
@@ -66,7 +67,8 @@ public class Service {
     }
 
     public void deleteUser(String username) {
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (!isAdmin()) {
             System.out.println("❌ Only Admin can delete users!");
@@ -75,8 +77,10 @@ public class Service {
 
         boolean removed = users.removeIf(u -> u.getUsername().equals(username));
 
-        if (removed) System.out.println("✅ User Deleted!");
-        else System.out.println("❌ User not found!");
+        if (removed)
+            System.out.println("✅ User Deleted!");
+        else
+            System.out.println("❌ User not found!");
     }
 
     // ================= AUTH =================
@@ -115,7 +119,8 @@ public class Service {
     // ================= CAR =================
     public void addCar(int id, String brand, String model, double price) {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (!isAdminOrSeller()) {
             System.out.println("❌ Only Admin/Seller can add cars!");
@@ -136,7 +141,8 @@ public class Service {
 
     public void updateCar(int id, double price) {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (!isAdminOrSeller()) {
             System.out.println("❌ Access Denied!");
@@ -156,7 +162,8 @@ public class Service {
 
     public void deleteCar(int id) {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (!isAdminOrSeller()) {
             System.out.println("❌ Access Denied!");
@@ -165,13 +172,16 @@ public class Service {
 
         boolean removed = cars.removeIf(c -> c.getId() == id);
 
-        if (removed) System.out.println("✅ Car Deleted!");
-        else System.out.println("❌ Car not found!");
+        if (removed)
+            System.out.println("✅ Car Deleted!");
+        else
+            System.out.println("❌ Car not found!");
     }
 
     public void browseCars() {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         for (Car c : cars) {
             if (c.isAvailable()) {
@@ -182,10 +192,12 @@ public class Service {
 
     public void viewCar(int id) {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         for (Car c : cars) {
             if (c.getId() == id) {
+                c.incrementView(); // 🔥 NEW
                 recent.add(c);
                 System.out.println(c);
                 return;
@@ -198,7 +210,10 @@ public class Service {
     // ================= PURCHASE =================
     public void purchaseCar(int id) {
 
-        if (!isLoggedIn()) return;
+        detectFraud(loggedInUser.getUsername());
+
+        if (!isLoggedIn())
+            return;
 
         if (!isBuyer() && !isAdmin()) {
             System.out.println("❌ Only Buyer/Admin can purchase!");
@@ -213,8 +228,7 @@ public class Service {
                 Order order = new Order(
                         orderCounter++,
                         loggedInUser.getUsername(),
-                        id
-                );
+                        id);
 
                 orders.add(order);
 
@@ -230,7 +244,8 @@ public class Service {
     // ================= WISHLIST =================
     public void addToWishlist(int id) {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (!isBuyer() && !isAdmin()) {
             System.out.println("❌ Access Denied!");
@@ -250,17 +265,21 @@ public class Service {
 
     public void removeFromWishlist(int id) {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         boolean removed = wishlist.removeIf(c -> c.getId() == id);
 
-        if (removed) System.out.println("✅ Removed from Wishlist!");
-        else System.out.println("❌ Car not in wishlist!");
+        if (removed)
+            System.out.println("✅ Removed from Wishlist!");
+        else
+            System.out.println("❌ Car not in wishlist!");
     }
 
     public void viewWishlist() {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (wishlist.isEmpty()) {
             System.out.println("⚠ Wishlist is empty!");
@@ -275,7 +294,8 @@ public class Service {
     // ================= RECENT =================
     public void viewRecentCars() {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (recent.isEmpty()) {
             System.out.println("⚠ No recent cars!");
@@ -290,7 +310,8 @@ public class Service {
     // ================= ORDERS =================
     public void viewMyOrders() {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         boolean found = false;
 
@@ -301,12 +322,14 @@ public class Service {
             }
         }
 
-        if (!found) System.out.println("⚠ No orders found!");
+        if (!found)
+            System.out.println("⚠ No orders found!");
     }
 
     public void viewAllOrders() {
 
-        if (!isLoggedIn()) return;
+        if (!isLoggedIn())
+            return;
 
         if (!isAdmin()) {
             System.out.println("❌ Only Admin allowed!");
@@ -320,6 +343,82 @@ public class Service {
 
         for (Order o : orders) {
             System.out.println(o);
+        }
+    }
+
+    public void compareCars(int id1, int id2) {
+        if (!isLoggedIn())
+            return;
+
+        Car c1 = null, c2 = null;
+
+        for (Car c : cars) {
+            if (c.getId() == id1)
+                c1 = c;
+            if (c.getId() == id2)
+                c2 = c;
+        }
+
+        if (c1 == null || c2 == null) {
+            System.out.println("❌ One or both cars not found!");
+            return;
+        }
+
+        System.out.println("=== COMPARISON ===");
+        System.out.println(c1);
+        System.out.println(c2);
+    }
+
+    private void detectFraud(String username) {
+        int count = 0;
+
+        for (Order o : orders) {
+            if (o.getUsername().equals(username)) {
+                count++;
+            }
+        }
+
+        if (count > 3) {
+            System.out.println("⚠ Fraud Alert: High purchase activity by " + username);
+        }
+    }
+
+    public void viewPopularCars() {
+        if (!isLoggedIn())
+            return;
+
+        cars.sort((a, b) -> b.getViewCount() - a.getViewCount());
+
+        System.out.println("🔥 Popular Cars:");
+        for (Car c : cars) {
+            System.out.println(c);
+        }
+    }
+
+    public void submitFeedback(String msg) {
+        if (!isLoggedIn())
+            return;
+
+        feedbacks.add(loggedInUser.getUsername() + ": " + msg);
+        System.out.println("✅ Feedback submitted!");
+    }
+
+    public void viewFeedbacks() {
+        if (!isLoggedIn())
+            return;
+
+        if (!isAdmin()) {
+            System.out.println("❌ Only Admin can view feedback!");
+            return;
+        }
+
+        if (feedbacks.isEmpty()) {
+            System.out.println("⚠ No feedback available!");
+            return;
+        }
+
+        for (String f : feedbacks) {
+            System.out.println(f);
         }
     }
 }
