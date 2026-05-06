@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Seller page styling (scoped to this file) */
+    .seller-main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 2.25rem;
+    }
+
+    .seller-hero {
+      background:
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.18), transparent 34%),
+        linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 22px;
+      color: #fff;
+      padding: 2rem;
+      box-shadow: 0 24px 55px rgba(26, 46, 74, 0.24);
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+      gap: 1.5rem;
+      align-items: center;
+      margin-bottom: 1.35rem;
+    }
+
+    .seller-hero h1 {
+      font-size: clamp(1.4rem, 2.4vw, 2rem);
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .seller-hero p {
+      color: rgba(255, 255, 255, 0.78);
+      margin: 0;
+      font-size: 0.95rem;
+      max-width: 520px;
+    }
+
+    .hero-mini-card {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      padding: 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-mini-card .label {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+    }
+
+    .hero-mini-card .value {
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 0.35rem;
+    }
+
+    .hero-mini-card .hint {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .seller-top-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .section-title {
+      color: var(--primary);
+      font-size: 1.15rem;
+      font-weight: 900;
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.01em;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.05rem;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+    }
+
+    .metric-value {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+
+    /* Listing cards */
+    .car-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .car-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .car-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(249, 115, 22, 0.35);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+    }
+
+    .car-img-placeholder {
+      height: 145px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.8rem;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.28);
+      letter-spacing: -0.08em;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .car-card-body {
+      padding: 1rem;
+    }
+
+    .car-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.65rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .car-card-title {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 0.1rem;
+    }
+
+    .car-subtitle {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .car-price {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 0.85rem;
+    }
+
+    .car-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .health-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      padding: 0.28rem 0.55rem;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .health-good {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #86efac;
+    }
+
+    .health-average {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: #fcd34d;
+    }
+
+    .health-poor {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #fca5a5;
+    }
+
+    .view-count {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .fraud-badge {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      border-radius: 10px;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.76rem;
+      font-weight: 800;
+      margin-bottom: 0.8rem;
+    }
+
+    .empty-state {
+      background: var(--card);
+      border: 1px dashed #cbd5e1;
+      border-radius: 18px;
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      color: var(--muted);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state h3 {
+      color: var(--primary);
+      margin-bottom: 0.35rem;
+    }
+
+    .car-card .btn {
+      width: auto !important; /* override global button full-width */
+      margin-top: 0 !important;
+    }
+
+    /* Seller contact section */
+    .contact-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+      margin: 1.1rem 0 0.85rem;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .contact-tile {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+    }
+
+    .contact-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.2rem;
+    }
+
+    .contact-value {
+      font-weight: 900;
+      color: var(--text);
+      font-size: 0.92rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 640px) {
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Contact modal (hidden by default) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      z-index: 100;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--card);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 1.4rem;
+      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 0.8rem;
+      right: 0.9rem;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 1.25rem;
+      color: var(--muted);
+    }
+
+    .contact-modal-info {
+      display: grid;
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+    }
+
+    .contact-modal-info p {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--primary);
+      border: 1.5px solid rgba(26, 46, 74, 0.18);
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.12);
+    }
+
+    @media (max-width: 980px) {
+      .seller-hero { grid-template-columns: 1fr; }
+      .metrics-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .car-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .seller-main { padding: 1.2rem 1rem 2rem; }
+      .metrics-row { grid-template-columns: 1fr; }
+      .car-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main class="seller-main">
+  <section class="seller-hero">
+    <div>
+      <h1 id="seller-welcome-title">Welcome, Seller</h1>
+      <p>Manage your listings and track sales performance at a glance.</p>
+      <div class="seller-top-actions">
+        <a href="add-car.html" class="btn btn-primary" style="width:auto;padding:0.55rem 1.2rem;font-size:0.88rem;margin-top:0;">+ Add New Car</a>
+      </div>
+    </div>
+
+    <div class="hero-mini-card">
+      <div class="label">Avg Rating</div>
+      <div class="value" id="hero-rating">—</div>
+      <div class="hint" id="hero-rating-hint">No reviews yet</div>
+    </div>
+  </section>
+
+  <div class="metrics-row" id="metrics-row">
+    <div class="metric-card">
+      <div class="metric-value" id="m-listed">—</div>
+      <div class="metric-label">Total Listed</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="m-sold">—</div>
+      <div class="metric-label">Cars Sold</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="m-available">—</div>
+      <div class="metric-label">Available</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value stars" id="m-rating">—</div>
+      <div class="metric-label" id="m-rating-label">Avg Rating</div>
+    </div>
+  </div>
+
+  <!-- Listings -->
+  <div style="margin: 1.1rem 0 0.85rem;">
+    <h2 class="section-title">My Listings</h2>
+  </div>
+
+  <section class="contact-section" aria-label="Seller Contact Details">
+    <h2 class="section-title" style="margin:0;">Your Contact Details</h2>
+    <div class="contact-grid" id="seller-contact-grid"></div>
+  </section>
+
+  <div id="listings-grid" class="car-grid">
+    <div class="empty-state"><p>Loading…</p></div>
+  </div>
+
+</main>
+
+<!-- Contact seller modal (reused for seller's own cards) -->
+<div class="modal-overlay" id="contact-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('contact-modal').classList.remove('visible')">&times;</button>
+    <h3 style="margin-bottom:1rem;color:var(--primary);">Your Contact Details</h3>
+    <div id="contact-modal-content" class="contact-modal-info"></div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/cars.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const user = getCurrentUser();
+    if (!user) { window.location.href = 'login-seller.html'; return; }
+    if (String(user.role || '').trim().toLowerCase() !== 'seller') {
+      clearCurrentUser(); window.location.href = 'login-seller.html'; return;
+    }
+    seedCarsIfEmpty();
+    renderNav(user);
+    renderDashboard(user);
+  });
+
+  function renderNav(user) {
+    document.getElementById('nav-placeholder').innerHTML = `
+      <header style="background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 8px 24px rgba(15,23,42,0.06);position:sticky;top:0;z-index:20;">
+        <div style="max-width:1180px;margin:0 auto;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+            <span class="badge badge-seller" style="background:#fef3c7;color:#92400e;padding:0.3rem 0.75rem;border-radius:999px;font-size:0.72rem;font-weight:800;letter-spacing:0.06em;">SELLER</span>
+          </div>
+          <nav style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <a href="seller-dashboard.html" style="background:#dbeafe;color:#1d4ed8;text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">Dashboard</a>
+            <a href="add-car.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:0.4rem 0.65rem;border-radius:999px;">+ Add Car</a>
+            <button type="button" onclick="logoutSeller()" style="color:var(--text);background:transparent;border:none;font-weight:700;cursor:pointer;padding:0.4rem 0.65rem;border-radius:999px;">Logout</button>
+          </nav>
+        </div>
+      </header>`;
+  }
+
+  function logoutSeller() { clearCurrentUser(); window.location.href = 'login-seller.html'; }
+
+  function getSellerRating(sellerId) {
+    if (typeof getSellerRatingSummary === 'function') {
+      const summary = getSellerRatingSummary(sellerId);
+      if (summary) return summary;
+    }
+
+    const legacyRatings = JSON.parse(localStorage.getItem('ucm_seller_ratings')) || [];
+    const mine = legacyRatings.filter(r => String(r.sellerId) === String(sellerId));
+    if (!mine.length) return null;
+    const avg = mine.reduce((s, r) => s + Number(r.rating || 0), 0) / mine.length;
+    return { avg: avg.toFixed(1), count: mine.length };
+  }
+
+  function renderStars(value) {
+    const r = Math.round(Number(value || 0));
+    return Array.from({length: 5}, (_, i) => i < r ? '★' : '☆').join('');
+  }
+
+  function renderDashboard(seller) {
+    const allCars = getCars().filter(c => c.sellerId === seller.id);
+    const sold    = allCars.filter(c => String(c.status || '').toLowerCase() === 'sold');
+    const avail   = allCars.filter(c => String(c.status || '').toLowerCase() === 'available');
+    const rating  = getSellerRating(seller.id);
+
+    const welcomeEl = document.getElementById('seller-welcome-title');
+    if (welcomeEl) {
+      welcomeEl.textContent = 'Welcome, ' + (seller.fullName || seller.userId || 'Seller') + '!';
+    }
+
+    document.getElementById('m-listed').textContent    = allCars.length;
+    document.getElementById('m-sold').textContent      = sold.length;
+    document.getElementById('m-available').textContent = avail.length;
+
+    renderSellerContact(seller);
+
+    if (rating) {
+      document.getElementById('m-rating').textContent       = renderStars(rating.avg);
+      document.getElementById('m-rating-label').textContent = `${rating.avg}/5 (${rating.count} reviews)`;
+
+      const heroRatingEl = document.getElementById('hero-rating');
+      const heroHintEl = document.getElementById('hero-rating-hint');
+      if (heroRatingEl) heroRatingEl.textContent = renderStars(rating.avg);
+      if (heroHintEl) heroHintEl.textContent = `${rating.avg}/5 (${rating.count} reviews)`;
+    } else {
+      document.getElementById('m-rating').textContent       = '—';
+      document.getElementById('m-rating-label').textContent = 'No reviews yet';
+
+      const heroRatingEl = document.getElementById('hero-rating');
+      const heroHintEl = document.getElementById('hero-rating-hint');
+      if (heroRatingEl) heroRatingEl.textContent = '—';
+      if (heroHintEl) heroHintEl.textContent = 'No reviews yet';
+    }
+
+    if (!allCars.length) {
+      document.getElementById('listings-grid').innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="empty-icon"></div>
+          <h3>No listings yet</h3>
+          <p>You have not listed any cars yet.</p>
+          <a href="add-car.html" class="btn btn-primary" style="width:auto;">Add Your First Car</a>
+        </div>`;
+      return;
+    }
+
+    const sorted = allCars.slice().sort(function (a, b) {
+      return new Date(b.listingDate || 0) - new Date(a.listingDate || 0);
+    });
+
+    document.getElementById('listings-grid').innerHTML = sorted.map(car => buildSellerCard(car)).join('');
+  }
+
+  function renderSellerContact(seller) {
+    const grid = document.getElementById('seller-contact-grid');
+    if (!grid) return;
+
+    const userId = seller.userId || seller.id || '—';
+    const fullName = seller.fullName || '—';
+    const email = seller.email || '—';
+    const phone = seller.phone || '—';
+    const city = seller.city || '—';
+    const regDate = seller.registrationDate ? new Date(seller.registrationDate) : null;
+
+    const regText = regDate && !isNaN(regDate.getTime())
+      ? regDate.toLocaleDateString('en-IN')
+      : (seller.registrationDate || '—');
+
+    grid.innerHTML = `
+      <div class="contact-tile"><div class="contact-label">Customer/User ID</div><div class="contact-value">${escapeHtml(userId)}</div></div>
+      <div class="contact-tile"><div class="contact-label">Full Name</div><div class="contact-value">${escapeHtml(fullName)}</div></div>
+      <div class="contact-tile"><div class="contact-label">Email</div><div class="contact-value">${escapeHtml(email)}</div></div>
+      <div class="contact-tile"><div class="contact-label">Phone</div><div class="contact-value">${escapeHtml(phone)}</div></div>
+      <div class="contact-tile"><div class="contact-label">City</div><div class="contact-value">${escapeHtml(city)}</div></div>
+      <div class="contact-tile"><div class="contact-label">Registered On</div><div class="contact-value">${escapeHtml(regText)}</div></div>
+    `;
+  }
+
+  function buildSellerCard(car) {
+    const score = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
+    const band  = getHealthBand(score);
+    const bg    = makeColor(car.make);
+    const isSold = String(car.status || '').toLowerCase() === 'sold';
+    return `
+<div class="car-card">
+  <div class="car-img-placeholder" style="background:${bg}">${car.make[0]}</div>
+  <div class="car-card-body">
+    <div class="car-card-header">
+      <h3 class="car-card-title">${car.make} ${car.model}</h3>
+      <div style="display:flex;align-items:center;gap:0.35rem;">
+        ${car.fraudFlag ? `<span title="Price Alert" style="font-size:1.1rem;">⚠️</span>` : ''}
+        <span class="health-badge ${isSold ? 'health-poor' : 'health-good'}" style="padding:0.18rem 0.45rem;">${isSold ? 'SOLD' : 'AVAILABLE'}</span>
+      </div>
+    </div>
+    <p class="car-subtitle">${car.year} &bull; ${car.fuelType} &bull; ${car.transmission}</p>
+    <div class="car-price">${formatPrice(car.price)}</div>
+    <div class="car-card-footer">
+      <span class="health-badge ${band.cls}">&#9679; ${score} ${band.label}</span>
+      <span class="view-count">&#128065; ${car.viewCount || 0} views</span>
+    </div>
+    ${car.fraudFlag ? `<div class="fraud-badge">&#9888; Price Alert — check pricing</div>` : ''}
+    <div style="margin-top:0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+      <button class="btn btn-secondary" style="flex:1;padding:0.45rem;font-size:0.8rem;"
+        onclick="window.location.href='car-details.html?id=${car.id}'">View</button>
+      <button class="btn btn-outline" style="flex:1;padding:0.45rem;font-size:0.8rem;"
+        onclick="editPrice('${car.id}')">Edit Price</button>
+      <button class="btn btn-secondary" style="grid-column:1/2;padding:0.45rem;font-size:0.8rem;"
+        onclick="toggleSoldStatus('${car.id}')">${isSold ? 'Mark Available' : 'Mark Sold'}</button>
+      <button class="btn btn-danger" style="grid-column:2/3;padding:0.45rem;font-size:0.8rem;"
+        onclick="deleteListing('${car.id}')">Delete</button>
+    </div>
+  </div>
+</div>`;
+  }
+
+  function toggleSoldStatus(carId) {
+    const car = getCarById(carId);
+    if (!car) return;
+    const isSold = String(car.status || '').toLowerCase() === 'sold';
+    updateCar(carId, { status: isSold ? 'available' : 'sold' });
+    renderDashboard(getCurrentUser());
+  }
+
+  function deleteListing(carId) {
+    const car = getCarById(carId);
+    if (!car) return;
+    const ok = confirm(`Delete listing ${car.make} ${car.model} (${car.id})? This cannot be undone.`);
+    if (!ok) return;
+    deleteCar(carId);
+    renderDashboard(getCurrentUser());
+  }
+
+  function editPrice(carId) {
+    const car = getCarById(carId);
+    if (!car) return;
+    const next = prompt('Enter new price in INR', String(car.price || ''));
+    if (next === null) return;
+    const value = Number(String(next).replace(/,/g, '').trim());
+    if (!value || value < 25000 || value > 10000000) {
+      alert('Price must be between ₹25,000 and ₹1,00,00,000.');
+      return;
+    }
+    const cars = getCars();
+    const target = getCarById(carId);
+    const fraudFlag = isFraudFlagged(value, target.make, target.year, cars);
+    updateCar(carId, { price: value, fraudFlag: fraudFlag });
+    renderDashboard(getCurrentUser());
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  window.toggleSoldStatus = toggleSoldStatus;
+  window.deleteListing = deleteListing;
+  window.editPrice = editPrice;
+</script>
+
+</body>
+</html>

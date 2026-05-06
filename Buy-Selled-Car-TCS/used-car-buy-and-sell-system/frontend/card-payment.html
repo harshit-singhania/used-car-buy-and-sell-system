@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credit Card Payment — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .page { min-height: 100vh; background: var(--bg); }
+    .top-nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .right-box { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
+    .welcome {
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+      padding: 1rem;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 0.9rem;
+    }
+    .chip {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.65rem;
+      font-size: 0.86rem;
+      color: var(--text);
+    }
+    .chip b {
+      display: block;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 900;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .actions { display: grid; gap: 0.65rem; margin-top: 0.95rem; }
+    .actions .btn { width: 100%; margin-top: 0; }
+    .success-note {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #166534;
+      border-radius: 12px;
+      padding: 0.85rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 0.65rem;
+    }
+    .invoice {
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 0.9rem;
+      margin-top: 0.75rem;
+      font-size: 0.86rem;
+    }
+    @media (max-width: 840px) { .summary { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top-nav">
+      <div class="top-nav-inner">
+        <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+        <div class="right-box">
+          <span class="welcome" id="welcome-user">Welcome User</span>
+          <button type="button" class="btn btn-secondary" style="width:auto;padding:0.45rem 0.8rem;" onclick="logoutCustomer()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="panel">
+        <h1 style="margin:0;color:var(--primary);font-size:1.35rem;">Credit Card Payment</h1>
+        <p style="margin:0.45rem 0 0.85rem;color:var(--muted);font-size:0.9rem;">Enter card details to complete payment.</p>
+
+        <div class="summary">
+          <div class="chip">
+            <b>Mode</b>
+            <span id="mode-label">Debit</span>
+          </div>
+          <div class="chip">
+            <b>Bill Amount</b>
+            <span id="amount-label">₹0</span>
+          </div>
+          <div class="chip">
+            <b>Status</b>
+            <span id="status-label">Pending</span>
+          </div>
+        </div>
+
+        <div style="margin-top:0.7rem;">
+          <label for="card-number" style="font-size:0.86rem;color:var(--text);font-weight:800;">
+            Credit Card <span class="required">*</span>
+          </label>
+          <div style="height:0.25rem;"></div>
+
+          <div class="field">
+            <label for="card-number">Card No <span class="required">*</span></label>
+            <input id="card-number" type="text" inputmode="numeric" minlength="16" maxlength="19" placeholder="Minimum 16 digits">
+            <span class="error-msg" id="card-number-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="card-holder">Card Holder Name <span class="required">*</span></label>
+            <input id="card-holder" type="text" minlength="10" maxlength="60" placeholder="Minimum 10 characters">
+            <span class="error-msg" id="card-holder-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="expiry-date">Expiry Date <span class="required">*</span></label>
+            <input id="expiry-date" type="text" inputmode="numeric" minlength="5" maxlength="5" placeholder="MM/YY">
+            <span class="error-msg" id="expiry-date-error"></span>
+          </div>
+
+          <div class="field">
+            <label for="cvv">CVV <span class="required">*</span></label>
+            <input id="cvv" type="password" inputmode="numeric" minlength="3" maxlength="4" placeholder="Minimum 3 digits">
+            <span class="error-msg" id="cvv-error"></span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" onclick="makePayment()">Make Payment</button>
+          <button type="button" class="btn btn-secondary" onclick="backToPayment()">Back to Payment</button>
+        </div>
+
+        <div id="payment-output"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    const PAYMENT_INVOICES_KEY = 'ucm_payment_invoices';
+
+    let currentUser = null;
+    let amount = 0;
+    let mode = 'Debit';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      currentUser = getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+      if (String(currentUser.role || '').trim().toLowerCase() !== 'buyer') {
+        clearCurrentUser();
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('welcome-user').textContent =
+        'Welcome ' + (currentUser.fullName || currentUser.userId || 'Customer');
+
+      hydrateFromQuery();
+      wireInputs();
+    });
+
+    function hydrateFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      amount = Number(params.get('amount') || 0);
+      mode = String(params.get('mode') || 'Debit');
+      if (!amount || amount < 0) amount = 7800;
+      if (mode !== 'Debit' && mode !== 'Credit') mode = 'Debit';
+
+      document.getElementById('mode-label').textContent = mode;
+      document.getElementById('amount-label').textContent = formatCurrency(amount);
+    }
+
+    function wireInputs() {
+      const cardNo = document.getElementById('card-number');
+      cardNo.addEventListener('input', function (e) {
+        const cleaned = String(e.target.value || '').replace(/\\D/g, '').slice(0, 19);
+        e.target.value = cleaned;
+        clearError('card-number');
+      });
+
+      const expiry = document.getElementById('expiry-date');
+      expiry.addEventListener('input', function (e) {
+        let raw = String(e.target.value || '').replace(/\\D/g, '').slice(0, 4);
+        if (raw.length >= 3) raw = raw.slice(0, 2) + '/' + raw.slice(2);
+        e.target.value = raw;
+        clearError('expiry-date');
+      });
+
+      const cvv = document.getElementById('cvv');
+      cvv.addEventListener('input', function (e) {
+        e.target.value = String(e.target.value || '').replace(/\\D/g, '').slice(0, 4);
+        clearError('cvv');
+      });
+    }
+
+    function makePayment() {
+      clearAllErrors();
+
+      const cardNo = String(document.getElementById('card-number').value || '').trim();
+      const holder = String(document.getElementById('card-holder').value || '').trim();
+      const expiry = String(document.getElementById('expiry-date').value || '').trim();
+      const cvv = String(document.getElementById('cvv').value || '').trim();
+
+      let ok = true;
+
+      // Card No: minimum 16 digits (allow 16-19)
+      if (!/^\\d{16,19}$/.test(cardNo)) {
+        showError('card-number', 'Card No must be at least 16 digits.');
+        ok = false;
+      }
+
+      // Holder: minimum 10 characters
+      if (holder.length < 10) {
+        showError('card-holder', 'Card Holder Name must be at least 10 characters.');
+        ok = false;
+      }
+
+      // Expiry: MM/YY
+      if (!/^(0[1-9]|1[0-2])\\/\\d{2}$/.test(expiry)) {
+        showError('expiry-date', 'Expiry Date must be in MM/YY format.');
+        ok = false;
+      }
+
+      // CVV: minimum 3 digits
+      if (!/^\\d{3,4}$/.test(cvv)) {
+        showError('cvv', 'CVV must be at least 3 digits.');
+        ok = false;
+      }
+
+      if (!ok) return;
+
+      const transactionId = 'TXN' + Date.now();
+
+      const invoice = {
+        transactionId: transactionId,
+        userId: String(currentUser.userId || currentUser.id || 'Customer'),
+        customerName: currentUser.fullName || currentUser.userId || 'Customer',
+        amount: amount,
+        mode: mode,
+        paidAt: new Date().toISOString()
+      };
+
+      const all = JSON.parse(localStorage.getItem(PAYMENT_INVOICES_KEY)) || [];
+      all.push(invoice);
+      localStorage.setItem(PAYMENT_INVOICES_KEY, JSON.stringify(all));
+
+      document.getElementById('status-label').textContent = 'Paid';
+      renderSuccess(invoice);
+    }
+
+    function renderSuccess(invoice) {
+      document.getElementById('payment-output').innerHTML = `
+        <div class="success-note">
+          Payment Successful! Transaction ID: ${escapeHtml(invoice.transactionId)}
+        </div>
+        <div class="invoice">
+          <h3 style="margin:0 0 0.55rem;color:var(--primary);font-size:1.02rem;">Invoice</h3>
+          <div><b>Customer:</b> ${escapeHtml(invoice.customerName)}</div>
+          <div><b>User ID:</b> ${escapeHtml(String(invoice.userId))}</div>
+          <div><b>Bill Amount:</b> ${escapeHtml(formatCurrency(invoice.amount))}</div>
+          <div><b>Mode:</b> ${escapeHtml(invoice.mode)}</div>
+          <div><b>Paid At:</b> ${escapeHtml(formatDateTime(invoice.paidAt))}</div>
+          <div><b>Transaction ID:</b> ${escapeHtml(invoice.transactionId)}</div>
+        </div>
+      `;
+    }
+
+    function backToPayment() {
+      window.location.href = 'payment-page.html';
+    }
+
+    function logoutCustomer() {
+      clearCurrentUser();
+      window.location.href = 'login.html';
+    }
+
+    function goHome() {
+      window.location.href = 'buyer-home.html';
+    }
+
+    function clearError(fieldId) {
+      const input = document.getElementById(fieldId);
+      const error = document.getElementById(fieldId + '-error');
+      if (input) input.classList.remove('is-error');
+      if (error) { error.textContent = ''; error.classList.remove('visible'); }
+    }
+
+    function clearAllErrors() {
+      ['card-number', 'card-holder', 'expiry-date', 'cvv'].forEach(clearError);
+    }
+
+    function showError(fieldId, message) {
+      const input = document.getElementById(fieldId);
+      const error = document.getElementById(fieldId + '-error');
+      if (input) input.classList.add('is-error');
+      if (error) { error.textContent = message; error.classList.add('visible'); }
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+      }).format(Number(value || 0));
+    }
+
+    function formatDateTime(value) {
+      const d = new Date(value || Date.now());
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleString('en-IN');
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.makePayment = makePayment;
+    window.backToPayment = backToPayment;
+    window.logoutCustomer = logoutCustomer;
+    window.goHome = goHome;
+  </script>
+</body>
+</html>
+

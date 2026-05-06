@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card wide">
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-logo">UsedCar<span>Mart</span></div>
+      <div class="brand-tagline">India's Trusted Used Car Marketplace</div>
+    </div>
+
+    <h1 class="auth-title">Create Your Account</h1>
+    <p class="auth-subtitle">Join thousands of buyers and sellers across India</p>
+
+    <!-- Alerts -->
+    <div class="alert alert-success" id="success-alert"></div>
+    <div class="alert alert-error"   id="global-error"></div>
+
+    <form id="register-form" novalidate>
+
+      <!-- ── Personal Information ─────────────────────── -->
+      <p class="form-section-title">Personal Information</p>
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label for="fullName">Full Name <span class="required">*</span></label>
+          <input type="text" id="fullName" placeholder="e.g. Rahul Sharma" maxlength="50" autocomplete="name">
+          <span class="error-msg" id="fullName-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="email">Email Address <span class="required">*</span></label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+          <span class="error-msg" id="email-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="mobile">Mobile Number <span class="required">*</span></label>
+          <div class="input-group">
+            <select id="countryCode" aria-label="Country code">
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+61">🇦🇺 +61</option>
+            </select>
+            <input type="tel" id="mobile" placeholder="10-digit number" maxlength="10" autocomplete="tel-national">
+          </div>
+          <span class="error-msg" id="mobile-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="city">City <span class="required">*</span></label>
+          <select id="city">
+            <option value="">Select your city</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Pune">Pune</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Others">Others</option>
+          </select>
+          <span class="error-msg" id="city-error"></span>
+        </div>
+
+      </div><!-- /form-grid -->
+
+      <div class="field">
+        <label>Role <span class="required">*</span></label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="role" value="Buyer" id="roleBuyer">
+            <span>Buyer &mdash; I want to purchase a car</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="role" value="Seller" id="roleSeller">
+            <span>Seller &mdash; I want to sell my car</span>
+          </label>
+        </div>
+        <span class="error-msg" id="role-error"></span>
+      </div>
+
+      <!-- ── Account Credentials ──────────────────────── -->
+      <p class="form-section-title">Account Credentials</p>
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label for="userId">User ID <span class="required">*</span></label>
+          <input type="text" id="userId" placeholder="5–20 alphanumeric characters" minlength="5" maxlength="20" autocomplete="username">
+          <span class="error-msg" id="userId-error"></span>
+        </div>
+
+        <!-- empty grid cell to keep alignment on desktop -->
+        <div></div>
+
+        <div class="field">
+          <label for="password">Password <span class="required">*</span></label>
+          <input type="password" id="password" placeholder="Create a strong password" autocomplete="new-password">
+          <p class="password-hint">Min 8 chars &bull; uppercase &bull; lowercase &bull; number &bull; special character</p>
+          <span class="error-msg" id="password-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirm Password <span class="required">*</span></label>
+          <input type="password" id="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password">
+          <span class="error-msg" id="confirmPassword-error"></span>
+        </div>
+
+      </div><!-- /form-grid -->
+
+      <div class="btn-row">
+        <button type="submit"  class="btn btn-primary">Register</button>
+        <button type="button"  class="btn btn-primary" id="reset-btn">Reset</button>
+      </div>
+
+    </form><!-- /register-form -->
+
+    <p class="auth-footer" style="margin-top:1.5rem;">
+      Already have an account?
+      <a href="login.html">Buyer Login</a>
+      &nbsp;&bull;&nbsp;
+      <a href="login-seller.html">Seller Login</a>
+    </p>
+
+  </div><!-- /auth-card -->
+</div><!-- /auth-page -->
+
+<script src="js/auth.js"></script>
+<script>
+  const form     = document.getElementById('register-form');
+  const resetBtn = document.getElementById('reset-btn');
+
+  const FIELD_IDS = ['fullName', 'email', 'mobile', 'city', 'userId', 'password', 'confirmPassword', 'role'];
+
+  /* Live-clear errors when the user starts typing */
+  FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => clearFieldError(id));
+  });
+  document.querySelectorAll('input[name="role"]').forEach(r =>
+    r.addEventListener('change', () => clearFieldError('role'))
+  );
+
+  /* ── Validate all fields, return true if clean ──── */
+  function validateAll() {
+    clearAllFieldErrors(FIELD_IDS);
+    hideAlert('global-error');
+    hideAlert('success-alert');
+
+    let valid = true;
+
+    const fullName       = document.getElementById('fullName').value.trim();
+    const email          = document.getElementById('email').value.trim();
+    const mobile         = document.getElementById('mobile').value.trim();
+    const city           = document.getElementById('city').value;
+    const roleEl         = document.querySelector('input[name="role"]:checked');
+    const userId         = document.getElementById('userId').value.trim();
+    const password       = document.getElementById('password').value;
+    const confirmPwd     = document.getElementById('confirmPassword').value;
+
+    const fnErr = validators.fullName(fullName);
+    if (fnErr) { showFieldError('fullName', fnErr); valid = false; }
+
+    const emErr = validators.email(email);
+    if (emErr) { showFieldError('email', emErr); valid = false; }
+
+    const mobErr = validators.mobile(mobile);
+    if (mobErr) { showFieldError('mobile', mobErr); valid = false; }
+
+    if (!city) { showFieldError('city', 'Please select your city'); valid = false; }
+
+    if (!roleEl) { showFieldError('role', 'Please select your role (Buyer or Seller)'); valid = false; }
+
+    const uidErr = validators.userId(userId);
+    if (uidErr) { showFieldError('userId', uidErr); valid = false; }
+
+    const pwdErr = validators.password(password);
+    if (pwdErr) { showFieldError('password', pwdErr); valid = false; }
+
+    const cpErr = validators.confirmPassword(confirmPwd, password);
+    if (cpErr) { showFieldError('confirmPassword', cpErr); valid = false; }
+
+    return valid;
+  }
+
+  /* ── Submit ────────────────────────────────────── */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!validateAll()) return;
+
+    const userId = document.getElementById('userId').value.trim();
+    const email  = document.getElementById('email').value.trim().toLowerCase();
+    const users  = getUsers();
+
+    /* Duplicate checks */
+    if (users.find(u => u.userId === userId)) {
+      showFieldError('userId', 'User ID already exists');
+      return;
+    }
+    if (users.find(u => u.email.toLowerCase() === email)) {
+      showFieldError('email', 'Email already registered');
+      return;
+    }
+
+    const newUser = {
+      id:               'USR' + Date.now(),
+      userId:           userId,
+      fullName:         document.getElementById('fullName').value.trim(),
+      email:            document.getElementById('email').value.trim(),
+      phone:            document.getElementById('countryCode').value + document.getElementById('mobile').value.trim(),
+      city:             document.getElementById('city').value,
+      role:             document.querySelector('input[name="role"]:checked').value,
+      password:         document.getElementById('password').value,
+      registrationDate: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+
+    showAlert('success-alert', `Registration Successful! Your User ID is ${userId}`);
+    form.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ── Reset ─────────────────────────────────────── */
+  resetBtn.addEventListener('click', function () {
+    form.reset();
+    clearAllFieldErrors(FIELD_IDS);
+    hideAlert('global-error');
+    hideAlert('success-alert');
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Cars — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .page { min-height: 100vh; background: var(--bg); }
+    .top-nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .top-nav-links { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .top-nav-links a,
+    .top-nav-links button {
+      color: var(--text);
+      background: transparent;
+      border: none;
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+    }
+    .top-nav-links .active { background: #dbeafe; color: #1d4ed8; }
+
+    .wrapper { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 2rem; }
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .head h1 { color: var(--primary); font-size: 1.6rem; }
+    .actions { display: flex; gap: 0.55rem; flex-wrap: wrap; }
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+      overflow: auto;
+    }
+    table.compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+    .compare-table th,
+    .compare-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.72rem 0.65rem;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 0.86rem;
+    }
+    .compare-table th.attr,
+    .compare-table td.attr {
+      text-align: left;
+      font-weight: 700;
+      width: 220px;
+      background: #f8fafc;
+      color: var(--primary);
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+    .car-thumb {
+      width: 88px;
+      height: 56px;
+      margin: 0 auto;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
+    .best {
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 800;
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      display: inline-block;
+      padding: 0.2rem 0.4rem;
+    }
+    .cell-muted { color: var(--muted); }
+    .empty {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.2rem;
+      text-align: center;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+    @media (max-width: 920px) {
+      .compare-table th.attr,
+      .compare-table td.attr {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div id="nav-placeholder"></div>
+  <main class="wrapper">
+    <div id="message"></div>
+    <div id="content"></div>
+  </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/cars.js"></script>
+<script>
+  let currentUser = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    currentUser = getCurrentUser();
+    if (!currentUser) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (String(currentUser.role || '').trim().toLowerCase() !== 'buyer') {
+      clearCurrentUser();
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (typeof seedCarsIfEmpty === 'function') {
+      seedCarsIfEmpty();
+    }
+
+    renderNav();
+    renderCompare();
+  });
+
+  function renderNav() {
+    document.getElementById('nav-placeholder').innerHTML = `
+      <header class="top-nav">
+        <div class="top-nav-inner">
+          <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+          <nav class="top-nav-links">
+            <a href="buyer-home.html">Home</a>
+            <a href="car-listings.html">Browse</a>
+            <a href="wishlist.html">Wishlist</a>
+            <a href="recently-viewed.html">Recent</a>
+            <a href="my-purchases.html">My Purchases</a>
+            <a href="compare-cars.html" class="active">Compare Cars</a>
+            <a href="support.html">Support</a>
+            <button type="button" onclick="logoutBuyer()">Logout</button>
+          </nav>
+        </div>
+      </header>
+    `;
+  }
+
+  function getCompareKey() {
+    const userId = currentUser.id || currentUser.userId;
+    return 'ucm_compare_' + String(userId || 'guest');
+  }
+
+  function getCompareCars() {
+    const ids = JSON.parse(localStorage.getItem(getCompareKey())) || [];
+    const cars = getCars();
+    return ids.map(function (carId) {
+      return cars.find(function (car) {
+        return String(car.id) === String(carId);
+      });
+    }).filter(Boolean);
+  }
+
+  function renderCompare() {
+    const cars = getCompareCars();
+    const content = document.getElementById('content');
+
+    if (cars.length < 2) {
+      content.innerHTML = `
+        <div class="empty">
+          <h2 style="color:var(--primary);margin-bottom:0.4rem;">Add at least 2 cars to compare</h2>
+          <p class="cell-muted" style="margin-bottom:0.9rem;">Browse cars and use the Compare button on car details.</p>
+          <a class="btn btn-primary" href="car-listings.html" style="width:auto;">Browse Cars</a>
+        </div>
+      `;
+      return;
+    }
+
+    const prices = cars.map(function (car) { return Number(car.price || 0); });
+    const mileages = cars.map(function (car) { return Number(car.mileage || 0); });
+    const health = cars.map(function (car) { return Number(car.healthScore ?? calculateHealthScore(car.year, car.mileage)); });
+    const ratings = cars.map(function (car) {
+      const summary = getSellerRatingData(car.sellerId);
+      return summary ? Number(summary.avg) : 0;
+    });
+
+    const minPrice = Math.min.apply(null, prices);
+    const minMileage = Math.min.apply(null, mileages);
+    const maxHealth = Math.max.apply(null, health);
+    const maxRating = Math.max.apply(null, ratings);
+
+    content.innerHTML = `
+      <section class="head">
+        <h1>Compare Cars (${cars.length})</h1>
+        <div class="actions">
+          <button type="button" class="btn btn-secondary" onclick="clearCompareList()">Clear All</button>
+          <a href="car-listings.html" class="btn btn-primary" ${cars.length >= 3 ? 'style="opacity:0.5;pointer-events:none;"' : ''}>Add More Cars</a>
+        </div>
+      </section>
+
+      <section class="table-card">
+        <table class="compare-table">
+          <tbody>
+            ${rowCells('Car', cars.map(function (car) {
+              return `
+                <div class="car-thumb" style="background:${makeColor(car.make)};">${escapeHtml(String(car.make || '?').charAt(0))}</div>
+                <div style="margin-top:0.35rem;font-weight:800;">${escapeHtml(car.make)} ${escapeHtml(car.model)}</div>
+                <button type="button" class="btn btn-danger" style="margin-top:0.45rem;padding:0.32rem 0.5rem;font-size:0.76rem;width:auto;" onclick="removeFromCompare('${escapeAttr(car.id)}')">Remove</button>
+              `;
+            }))}
+
+            ${rowCells('Year', cars.map(function (car) { return escapeHtml(car.year); }))}
+            ${rowCells('Price', cars.map(function (car) {
+              const value = Number(car.price || 0);
+              const text = formatPrice(value);
+              return value === minPrice ? `<span class="best">${text}</span>` : text;
+            }))}
+            ${rowCells('Fuel Type', cars.map(function (car) { return escapeHtml(car.fuelType || '—'); }))}
+            ${rowCells('Transmission', cars.map(function (car) { return escapeHtml(car.transmission || '—'); }))}
+            ${rowCells('Mileage', cars.map(function (car) {
+              const value = Number(car.mileage || 0);
+              const text = formatKilometers(value);
+              return value === minMileage ? `<span class="best">${text}</span>` : text;
+            }))}
+            ${rowCells('Health Score', cars.map(function (car, idx) {
+              const score = health[idx];
+              const band = getHealthBand(score);
+              const badge = `<span class="health-badge ${band.cls}">${escapeHtml(String(score))} ${escapeHtml(band.label)}</span>`;
+              return score === maxHealth ? `<span class="best">${badge}</span>` : badge;
+            }))}
+            ${rowCells('Seller Rating', cars.map(function (car, idx) {
+              const summary = getSellerRatingData(car.sellerId);
+              if (!summary) return '<span class="cell-muted">No reviews</span>';
+              const val = Number(summary.avg);
+              const text = `${renderStars(summary.avg)} ${escapeHtml(summary.avg)} (${escapeHtml(summary.count)})`;
+              return val === maxRating ? `<span class="best">${text}</span>` : text;
+            }))}
+            ${rowCells('Fraud Flag', cars.map(function (car) {
+              const flagged = isFraudFlagged(car.price, car.make, car.year, getCars());
+              return flagged ? '<span style="color:var(--error);font-weight:800;">⚠ Price Alert</span>' : '<span style="color:var(--success);font-weight:700;">Normal</span>';
+            }))}
+            ${rowCells('Price vs Market Avg', cars.map(function (car) {
+              const avg = getAveragePrice(car.make, car.year, getCars());
+              if (!avg) return '<span class="cell-muted">Not enough data</span>';
+              const diff = Math.round(((Number(car.price || 0) - Number(avg)) / Number(avg)) * 100);
+              const text = `${diff >= 0 ? '+' + diff : diff}%`;
+              const color = Math.abs(diff) > 40 ? 'var(--error)' : 'var(--text)';
+              return `<span style="color:${color};font-weight:700;">${text}</span><div class="cell-muted">avg ${formatPrice(avg)}</div>`;
+            }))}
+          </tbody>
+        </table>
+      </section>
+    `;
+  }
+
+  function rowCells(label, cells) {
+    return `
+      <tr>
+        <th class="attr">${label}</th>
+        ${cells.map(function (cell) { return `<td>${cell}</td>`; }).join('')}
+      </tr>
+    `;
+  }
+
+  function removeFromCompare(carId) {
+    const key = getCompareKey();
+    const list = JSON.parse(localStorage.getItem(key)) || [];
+    localStorage.setItem(key, JSON.stringify(list.filter(function (id) {
+      return String(id) !== String(carId);
+    })));
+    renderCompare();
+  }
+
+  function clearCompareList() {
+    localStorage.setItem(getCompareKey(), JSON.stringify([]));
+    renderCompare();
+  }
+
+  function getSellerRatingData(sellerId) {
+    if (typeof getSellerRatingSummary === 'function') {
+      const summary = getSellerRatingSummary(sellerId);
+      if (summary) return summary;
+    }
+
+    const fallback = JSON.parse(localStorage.getItem('ucm_seller_ratings')) || [];
+    const mine = fallback.filter(function (r) {
+      return String(r.sellerId) === String(sellerId);
+    });
+    if (!mine.length) return null;
+    const avg = mine.reduce(function (sum, r) { return sum + Number(r.rating || 0); }, 0) / mine.length;
+    return { avg: avg.toFixed(1), count: mine.length };
+  }
+
+  function renderStars(value) {
+    const rating = Math.round(Number(value || 0));
+    let stars = '';
+    for (let i = 1; i <= 5; i++) stars += i <= rating ? '★' : '☆';
+    return stars;
+  }
+
+  function logoutBuyer() {
+    clearCurrentUser();
+    window.location.href = 'login.html';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function escapeAttr(value) {
+    return String(value ?? '')
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '&quot;');
+  }
+
+  window.removeFromCompare = removeFromCompare;
+  window.clearCompareList = clearCompareList;
+  window.logoutBuyer = logoutBuyer;
+</script>
+</body>
+</html>

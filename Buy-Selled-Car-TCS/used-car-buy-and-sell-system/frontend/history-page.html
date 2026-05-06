@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Booking History — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .page { min-height: 100vh; background: var(--bg); }
+    .top-nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .top-nav-links { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .top-nav-links a,
+    .top-nav-links button {
+      color: var(--text);
+      background: transparent;
+      border: none;
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .prompt-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.55rem;
+      align-items: end;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 920px; }
+    thead { background: #f8fafc; }
+    th, td {
+      text-align: left;
+      padding: 0.7rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.84rem;
+      white-space: nowrap;
+    }
+    th { color: var(--muted); font-weight: 800; }
+    .empty {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      text-align: center;
+      padding: 1rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div id="nav-placeholder"></div>
+  <main class="wrap">
+    <section class="panel">
+      <h1 style="margin:0;color:var(--primary);font-size:1.45rem;">Admin - View User Booking History</h1>
+      <p style="margin:0.45rem 0 0.9rem;color:var(--muted);">Enter a valid UserID to review reservation details.</p>
+      <div class="prompt-row">
+        <div class="field" style="margin:0;">
+          <label for="search-user-id">UserID <span class="required">*</span></label>
+          <input id="search-user-id" type="text" placeholder="Enter UserID (e.g. demoBuyer)">
+          <span class="error-msg" id="search-user-id-error"></span>
+        </div>
+        <button class="btn btn-primary" type="button" style="width:auto;margin-top:0;" onclick="searchBookingHistory()">View History</button>
+      </div>
+    </section>
+
+    <div id="result"></div>
+  </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+  const BOOKING_HISTORY_KEY = 'ucm_booking_history';
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = 'login-seller.html';
+      return;
+    }
+
+    if (String(user.role || '').trim().toLowerCase() !== 'admin') {
+      clearCurrentUser();
+      window.location.href = 'login-seller.html';
+      return;
+    }
+
+    renderNav();
+    seedBookingHistoryIfEmpty();
+    document.getElementById('search-user-id').focus();
+  });
+
+  function renderNav() {
+    document.getElementById('nav-placeholder').innerHTML = `
+      <header class="top-nav">
+        <div class="top-nav-inner">
+          <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+          <nav class="top-nav-links">
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="history-page.html" style="background:#dbeafe;color:#1d4ed8;">History Page</a>
+            <a href="room-status.html">Room Status</a>
+            <button type="button" onclick="logoutAdmin()">Logout</button>
+          </nav>
+        </div>
+      </header>
+    `;
+  }
+
+  function seedBookingHistoryIfEmpty() {
+    const existing = getBookingHistory();
+    if (existing.length) return;
+
+    localStorage.setItem(BOOKING_HISTORY_KEY, JSON.stringify([
+      {
+        reservationId: 'RES10001',
+        userId: 'demoBuyer',
+        checkInDate: '2026-04-10',
+        checkOutDate: '2026-04-12',
+        roomNumber: 'A-101',
+        billAmount: 7800,
+        bookingDate: '2026-04-01'
+      },
+      {
+        reservationId: 'RES10002',
+        userId: 'demoBuyer',
+        checkInDate: '2026-04-24',
+        checkOutDate: '2026-04-27',
+        roomNumber: 'B-205',
+        billAmount: 10200,
+        bookingDate: '2026-04-15'
+      },
+      {
+        reservationId: 'RES10003',
+        userId: 'demoSeller',
+        checkInDate: '2026-03-20',
+        checkOutDate: '2026-03-21',
+        roomNumber: 'C-009',
+        billAmount: 3500,
+        bookingDate: '2026-03-14'
+      }
+    ]));
+  }
+
+  function getBookingHistory() {
+    return JSON.parse(localStorage.getItem(BOOKING_HISTORY_KEY)) || [];
+  }
+
+  function searchBookingHistory() {
+    const input = document.getElementById('search-user-id');
+    const error = document.getElementById('search-user-id-error');
+    const enteredUserId = String(input.value || '').trim();
+    error.textContent = '';
+    input.classList.remove('is-error');
+
+    if (!enteredUserId) {
+      error.textContent = 'UserID is required';
+      input.classList.add('is-error');
+      return;
+    }
+
+    const users = getUsers();
+    const validUser = users.find(function (user) {
+      return String(user.userId || '').trim() === enteredUserId;
+    });
+
+    if (!validUser) {
+      error.textContent = 'Invalid UserID. Please enter a registered UserID.';
+      input.classList.add('is-error');
+      renderEmpty('No matching user found for the entered UserID.');
+      return;
+    }
+
+    const rows = getBookingHistory()
+      .filter(function (entry) {
+        return String(entry.userId || '').trim() === enteredUserId;
+      })
+      .sort(function (a, b) {
+        return new Date(b.bookingDate || 0) - new Date(a.bookingDate || 0);
+      });
+
+    if (!rows.length) {
+      renderEmpty('No booking history found for UserID: ' + escapeHtml(enteredUserId));
+      return;
+    }
+
+    renderTable(enteredUserId, rows);
+  }
+
+  function renderTable(userId, rows) {
+    document.getElementById('result').innerHTML = `
+      <section class="panel">
+        <h2 style="margin:0;color:var(--primary);font-size:1.08rem;">Booking History for UserID: ${escapeHtml(userId)}</h2>
+        <p style="margin:0.35rem 0 0;color:var(--muted);">Total reservations: ${rows.length}</p>
+      </section>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Reservation ID</th>
+              <th>Check-in Date</th>
+              <th>Check-out Date</th>
+              <th>Room Number</th>
+              <th>Bill Amount</th>
+              <th>Booking Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(function (entry) {
+              return `
+                <tr>
+                  <td>${escapeHtml(entry.reservationId)}</td>
+                  <td>${escapeHtml(formatDate(entry.checkInDate))}</td>
+                  <td>${escapeHtml(formatDate(entry.checkOutDate))}</td>
+                  <td>${escapeHtml(entry.roomNumber)}</td>
+                  <td>${escapeHtml(formatCurrency(entry.billAmount))}</td>
+                  <td>${escapeHtml(formatDate(entry.bookingDate))}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderEmpty(message) {
+    document.getElementById('result').innerHTML = `
+      <div class="empty">${message}</div>
+    `;
+  }
+
+  function formatCurrency(value) {
+    const amount = Number(value || 0);
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  }
+
+  function formatDate(value) {
+    const date = new Date(value || Date.now());
+    if (isNaN(date.getTime())) return '—';
+    const day = String(date.getDate()).padStart(2, '0');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return day + '-' + months[date.getMonth()] + '-' + date.getFullYear();
+  }
+
+  function logoutAdmin() {
+    clearCurrentUser();
+    window.location.href = 'login-seller.html';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  window.logoutAdmin = logoutAdmin;
+  window.searchBookingHistory = searchBookingHistory;
+</script>
+</body>
+</html>
+
+
+
+<!-- userId: demoAdmin
+password: Admin@1234
+role: Admin -->

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .page { min-height: 100vh; background: var(--bg); }
+    .top-nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .top-nav-links { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .top-nav-links a,
+    .top-nav-links button {
+      color: var(--text);
+      background: transparent;
+      border: none;
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .hero {
+      background: linear-gradient(145deg, #0b5cff, #1d4ed8);
+      border-radius: 18px;
+      color: #fff;
+      padding: 1.4rem;
+      box-shadow: 0 16px 36px rgba(29, 78, 216, 0.25);
+    }
+    .hero h1 { margin: 0; font-size: 1.65rem; }
+    .hero p { margin: 0.6rem 0 0; opacity: 0.95; }
+    .history-cta {
+      margin-top: 1rem;
+      display: inline-block;
+      background: #fff;
+      color: #1d4ed8;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+    }
+    .hero-actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div id="nav-placeholder"></div>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Admin Control Panel</h1>
+      <p>Review user reservation and booking history by entering a specific UserID.</p>
+      <div class="hero-actions">
+        <a href="history-page.html" class="history-cta">Open History Page</a>
+        <a href="room-status.html" class="history-cta">Track Room Status</a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = 'login-seller.html';
+      return;
+    }
+
+    if (String(user.role || '').trim().toLowerCase() !== 'admin') {
+      clearCurrentUser();
+      window.location.href = 'login-seller.html';
+      return;
+    }
+
+    renderNav();
+  });
+
+  function renderNav() {
+    document.getElementById('nav-placeholder').innerHTML = `
+      <header class="top-nav">
+        <div class="top-nav-inner">
+          <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+          <nav class="top-nav-links">
+            <a href="admin-dashboard.html" style="background:#dbeafe;color:#1d4ed8;">Dashboard</a>
+            <a href="history-page.html">History Page</a>
+            <a href="room-status.html">Room Status</a>
+            <button type="button" onclick="logoutAdmin()">Logout</button>
+          </nav>
+        </div>
+      </header>
+    `;
+  }
+
+  function logoutAdmin() {
+    clearCurrentUser();
+    window.location.href = 'login-seller.html';
+  }
+
+  window.logoutAdmin = logoutAdmin;
+</script>
+</body>
+</html>

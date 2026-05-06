@@ -1,0 +1,359 @@
+SlNo,Feature,Story Number,Description (Card),Acceptance Criteria (Confirmation)
+1,Registration – UI,US001,"As a Buyer/Seller, I want to be able to self-register with my details so that I can access the Used Car marketplace.","*User should be able to enter the following information in the screen;
+1.Personal Information:
+- Full Name: A text field for the user's name (Maximum 50 characters, alphabets and spaces only)
+- Email: A text field to capture the Email (must follow standard email format with @ and domain)
+- Mobile Number: A 10-digit numeric text field with country code dropdown (+91 default)
+- City: A dropdown select box with major Indian cities (Delhi, Mumbai, Bangalore, Chennai, Hyderabad, Pune, Kolkata, Others)
+- Role: A radio button selection for Buyer or Seller
+
+2.Username and Password:
+- User ID: A text field (minimum 5, maximum 20 characters, alphanumeric only)
+- Password: A text field (minimum 8 characters, must contain at least one uppercase letter, one lowercase letter, one digit, and one special character)
+- Confirm Password: Must match the Password field exactly
+
+3.Buttons:
+- Register: Submit button that validates all fields before submission
+- Reset: Clears all form fields to default values
+
+* After clicking 'Register', all inputs must be validated. If any field is invalid, display a specific red-colored error message below the respective field.
+* On successful registration, store the user object in LocalStorage under a 'users' key array and display a success message: 'Registration Successful! Your User ID is <userID>' in green color.
+* Duplicate User ID or Email should not be allowed. Display error: 'User ID already exists' or 'Email already registered'."
+2,Login – UI,US002,"As a Buyer, I want to be able to login with my credentials so that I can browse and purchase cars.","Login page should have below details:
+
+-Username and Password:
+- User ID: A text field (minimum 5, maximum 20 characters)
+- Password: A text field (Maximum 30 characters)
+
+-Validation:
+- Both fields are mandatory. If either is empty, display 'Please fill in all fields' in red.
+- On clicking Login, verify credentials against the users array stored in LocalStorage.
+- If credentials do not match, display error message: 'Invalid User ID or Password' in red color.
+
+-Successful Login:
+- User should be redirected to the Buyer Homepage/Dashboard.
+- Store the currently logged-in user details in LocalStorage under 'currentUser' key.
+- Display 'Welcome <Full Name>' on the dashboard.
+
+-Additional:
+- A 'New User? Register here' link should navigate to the Registration page.
+- A 'Forgot Password?' link should display a simulated password hint message."
+3,Login (Seller/Admin) – UI,US003,"As a Seller, I want to login to the application so that I can manage my car listings.","Login page should have below details:
+
+-Username and Password:
+- User ID: A text field (minimum 5, maximum 20 characters)
+- Password: A text field (Maximum 30 characters)
+
+-Validation:
+- On clicking Login, verify credentials against the users array in LocalStorage.
+- Check that the user's role is 'Seller'. If role is 'Buyer', display: 'Access denied. Please use Buyer login.'
+
+-Successful Login:
+- Seller should be redirected to the Seller Dashboard with seller-specific menu options.
+- Display 'Welcome <Full Name> (Seller)' at the top right.
+
+-Error Handling:
+- Display appropriate specific error messages for invalid credentials.
+- After 3 consecutive failed login attempts, display: 'Account temporarily locked. Try again after refreshing the page.'"
+4,Buyer Homepage – UI,US004,"As a Buyer, I want to view the Home Page with navigation and featured cars so that I can quickly explore the marketplace.","* After login to the system, buyer can view the home page with following information:
+- At the top right, display 'Welcome <username>' with a user avatar icon
+- Top navigation bar should have the following menu items:
+1) Home – On clicking, redirect to the same page
+2) Browse Cars – On clicking, navigate to Car Listings page
+3) My Wishlist – On clicking, navigate to Wishlist page showing saved cars
+4) Recently Viewed – On clicking, navigate to Recently Viewed Cars page
+5) My Purchases – On clicking, navigate to Purchase History page
+6) Compare Cars – On clicking, navigate to Car Comparison page
+7) Contact Support – On clicking, navigate to Support/Help page
+8) Logout – On clicking, clear 'currentUser' from LocalStorage and redirect to Login page
+
+* Featured Cars Section:
+- Display top 4 cars with the highest Health Score from LocalStorage
+- Each car card should show: Car Image placeholder, Make, Model, Year, Price (formatted with commas), and Health Score badge (color-coded: Green for 70+, Yellow for 40-69, Red for below 40)
+- Clicking a car card should navigate to the Car Details page
+
+* Recommendation Section:
+- Display heading 'Recommended for You'
+- Show 3 cars filtered based on the buyer's last viewed car's price range (±20%) and fuel type
+- If no viewing history exists, show 3 most recently listed cars
+
+* Search Bar:
+- A prominent search bar at the top allowing quick search by car make or model name"
+5,Seller Dashboard – UI,US005,"As a Seller, I want to view my Dashboard with my listings and performance metrics so that I can manage my car business.","* After login, seller can view the dashboard with following information:
+- At the top right, display 'Welcome <username> (Seller)' with seller badge icon
+- Top navigation bar should have:
+1) Dashboard – On clicking, redirect to the same page
+2) My Listings – On clicking, navigate to Seller's car listings page
+3) Add New Car – On clicking, navigate to Add Car form
+4) My Reviews – On clicking, navigate to page showing buyer reviews and ratings
+5) Sales History – On clicking, navigate to completed sales page
+6) Contact Support – On clicking, navigate to Support page
+7) Logout – On clicking, clear session and redirect to Login page
+
+* Seller Performance Section:
+- Total Cars Listed: Count of all cars added by this seller from LocalStorage
+- Cars Sold: Count of cars with status 'sold'
+- Cars Available: Count of cars with status 'available'
+- Average Rating: Calculated from reviews array in LocalStorage, displayed as star rating (1-5)
+
+* My Active Listings Section:
+- Display all 'available' cars listed by this seller as cards
+- Each card shows: Make, Model, Year, Price, Health Score, View Count, and a Fraud Flag warning icon if flagged"
+6,Car Listing Page – UI,US006,"As a Buyer, I want to browse all available cars with smart filters so that I can find cars matching my preferences.","* The Car Listing page should display all cars with status 'available' from LocalStorage.
+
+* Each car should be displayed as a card with:
+- Car image placeholder (colored div based on car make)
+- Make and Model as title
+- Year | Fuel Type | Transmission as subtitle
+- Price displayed prominently with rupee symbol and comma formatting
+- Health Score badge (color-coded: Green 70-100, Yellow 40-69, Red 0-39)
+- Fraud Warning: If the car's price is more than 40% below the average price for the same make and year, display a red 'Price Alert' badge
+- Wishlist heart icon (toggle to add/remove from wishlist)
+- View Count: Display number of times the car has been viewed
+
+* Smart Filter Panel (Left Sidebar):
+- Price Range: Two input fields (Min and Max) with Apply button
+- Brand/Make: Checkbox list of all available makes (dynamically populated from data)
+- Fuel Type: Checkbox options (Petrol, Diesel, CNG, Electric)
+- Transmission: Checkbox options (Manual, Automatic)
+- Year Range: Two dropdown selects for From Year and To Year
+- Health Score: Dropdown (Excellent 80+, Good 60-79, Fair 40-59, All)
+- Clear All Filters button to reset all filters
+
+* Sorting Options (Top bar):
+- Sort by: Price Low to High, Price High to Low, Newest First, Highest Health Score
+- Display total count of results: 'Showing X of Y cars'
+
+* On clicking any car card, navigate to Car Details page and increment the view count for that car in LocalStorage.
+* Also store the car ID in the user's 'recentlyViewed' array in LocalStorage with timestamp."
+7,Car Details Page – UI,US007,"As a Buyer, I want to view complete details of a car including health score and seller rating so that I can make an informed purchase decision.","* The Car Details page should retrieve car data from LocalStorage using carId parameter.
+
+* Car Information Section:
+- Large image placeholder area
+- Make, Model, Year as heading
+- Price displayed prominently (formatted: ₹X,XX,XXX)
+- Status badge: 'Available' in green or 'Sold' in red
+
+* Specifications Table:
+- Fuel Type
+- Transmission
+- Mileage (formatted with commas, e.g., 45,000 km)
+- Color
+- Registration Year
+- Listing Date
+
+* Car Health Score Section:
+- Display calculated Health Score as a circular progress indicator
+- Formula: score = 100 - (currentYear - carYear) * 3 - (mileage / 10000) * 2, clamped between 0 and 100
+- Color coding: Green (70-100 Excellent), Yellow (40-69 Good), Red (0-39 Poor)
+- Display breakdown: 'Age Deduction: -X points | Mileage Deduction: -X points'
+
+* Fraud Detection Section:
+- Calculate average price of all cars with the same make and year from LocalStorage
+- If this car's price is more than 40% below the average, display a red warning box: '⚠ Price Alert: This car is priced significantly below market average. Exercise caution.'
+- If price is within normal range, display green text: '✓ Price is within market range'
+
+* Price Comparison Indicator:
+- Display: 'Market Average for <Make> <Year>: ₹X,XX,XXX'
+- Show percentage difference: 'This car is X% below/above market average'
+
+* Seller Information Section:
+- Seller Name, City, Member Since date
+- Seller Rating: Display average rating as stars (out of 5) calculated from reviews in LocalStorage
+- Total cars sold by this seller
+- 'Contact Seller' button (displays seller phone and email in a modal popup)
+
+* Action Buttons:
+- 'Add to Wishlist' / 'Remove from Wishlist' toggle button
+- 'Buy This Car' button (navigates to Purchase Confirmation page)
+- 'Compare' button (adds car to comparison list in LocalStorage, max 3 cars)
+
+* People Also Viewed Section:
+- Display 3 cars with the same fuel type or similar price range (±15%) excluding the current car
+- Each shown as a mini card with Make, Model, Price, and Health Score"
+8,Add Car Listing – UI,US008,"As a Seller, I want to add a new car listing with all details so that buyers can discover and purchase my car.","* The Add Car form should have the following fields:
+
+1. Car Details:
+- Make: Dropdown select (Maruti, Hyundai, Honda, Toyota, Tata, Mahindra, Kia, Ford, Volkswagen, BMW, Others)
+- Model: Text field (Maximum 30 characters)
+- Year: Dropdown select (from 2000 to current year)
+- Color: Dropdown select (White, Black, Silver, Red, Blue, Grey, Others)
+
+2. Performance Details:
+- Fuel Type: Radio buttons (Petrol, Diesel, CNG, Electric)
+- Transmission: Radio buttons (Manual, Automatic)
+- Mileage: Numeric text field (in kilometers, must be positive number, max 500000)
+
+3. Pricing:
+- Price: Numeric text field (in rupees, minimum 25000, maximum 10000000)
+- Display a real-time market comparison as the seller types the price: 'Average price for <Make> <Year>: ₹X,XX,XXX' fetched from existing listings in LocalStorage
+
+4. Buttons:
+- Submit Listing: Validates all fields, generates a unique car ID, calculates Health Score automatically, sets status to 'available', stores listing date as current date, and saves to LocalStorage under 'cars' array
+- Reset: Clears all form fields
+- Preview: Shows a read-only preview of how the listing will appear to buyers
+
+* Validation Rules:
+- All fields are mandatory. Display specific error messages below each empty/invalid field in red.
+- Mileage must be a positive number. Display: 'Please enter valid mileage'
+- Price must be between 25,000 and 1,00,00,000. Display: 'Price must be between ₹25,000 and ₹1,00,00,000'
+
+* On successful submission:
+- Display success message: 'Car listed successfully! Listing ID: <carID>' in green
+- Automatically calculate and store Fraud Flag if price deviates more than 40% from average for same make and year
+- Redirect to Seller Dashboard after 2 seconds"
+9,Wishlist Page – UI,US009,"As a Buyer, I want to view and manage my saved/wishlisted cars so that I can revisit cars I am interested in.","* The Wishlist page should retrieve the current user's wishlist from LocalStorage.
+
+* Display:
+- Page heading: 'My Wishlist (X cars)' showing total count
+- If wishlist is empty, display: 'Your wishlist is empty. Browse cars to add some!' with a 'Browse Cars' button linking to Car Listings page
+
+* Each wishlisted car displayed as a card:
+- Car image placeholder
+- Make, Model, Year
+- Price (formatted with ₹ and commas)
+- Health Score badge (color-coded)
+- Date Added to wishlist
+- Status indicator: 'Available' in green or 'Sold' in red (check current status from cars array)
+
+* Action Buttons per card:
+- 'View Details' – Navigate to Car Details page
+- 'Remove from Wishlist' – Remove the car from wishlist array in LocalStorage, update the count, and show confirmation: 'Removed from wishlist'
+- 'Buy Now' – Navigate to Purchase Confirmation (only if status is 'available', otherwise button is disabled with tooltip: 'This car has been sold')
+
+* If a wishlisted car has been sold by another buyer, display a visual strikethrough on the price and an 'SOLD' overlay on the card."
+10,Recently Viewed Cars – UI,US010,"As a Buyer, I want to see my recently viewed cars so that I can quickly return to cars I was browsing.","* The Recently Viewed page should retrieve the 'recentlyViewed' array for the current user from LocalStorage.
+
+* Display:
+- Page heading: 'Recently Viewed Cars'
+- Cars displayed in reverse chronological order (most recently viewed first)
+- Maximum of 10 most recent entries shown
+- Each entry shows: Make, Model, Year, Price, Health Score badge, and 'Viewed on <date and time>'
+
+* Each card should have:
+- 'View Again' button – Navigate to Car Details page
+- 'Add to Wishlist' button – Add to wishlist if not already present
+- Availability status: 'Available' or 'Sold'
+
+* If no recently viewed cars exist, display: 'You have not viewed any cars yet. Start browsing!' with a link to Car Listings page.
+
+* Duplicate entries should not appear. If a car is viewed multiple times, only the most recent timestamp should be kept and the car should appear once at the top."
+11,Car Comparison Page – UI,US011,"As a Buyer, I want to compare multiple cars side by side so that I can evaluate which car is the best deal.","* The Compare Cars page should retrieve the comparison list from LocalStorage.
+
+* Comparison Table:
+- Display selected cars as columns (minimum 2, maximum 3 cars)
+- Row attributes for comparison:
+  1) Car Image placeholder
+  2) Make and Model
+  3) Year
+  4) Price (formatted)
+  5) Fuel Type
+  6) Transmission
+  7) Mileage
+  8) Health Score (with color-coded badge)
+  9) Seller Rating (stars)
+  10) Fraud Flag status
+  11) Price vs Market Average (percentage)
+
+* The best value in each row should be highlighted in green:
+- Lowest price highlighted
+- Lowest mileage highlighted
+- Highest health score highlighted
+- Highest seller rating highlighted
+
+* Action Buttons:
+- 'Remove' button on each column header to remove a car from comparison
+- 'Add More Cars' button (navigates to Car Listings page, disabled if 3 cars already selected)
+- 'Clear All' button to remove all cars from comparison list
+
+* If fewer than 2 cars are in the comparison list, display: 'Add at least 2 cars to compare. Browse cars to add.' with a link to Car Listings page."
+12,Purchase Car – UI,US012,"As a Buyer, I want to purchase a car through a confirmation flow so that I can complete my transaction.","* The Purchase Confirmation page should display:
+
+1. Order Summary Section:
+- Car details: Make, Model, Year, Color
+- Price: Displayed prominently with ₹ formatting
+- Seller Name and Rating
+- Health Score badge
+
+2. Buyer Confirmation:
+- Display logged-in buyer's name and contact details (pre-filled from LocalStorage)
+- Checkbox: 'I confirm that I want to purchase this car' (mandatory to proceed)
+
+3. Simulated Payment Section:
+- Payment Method: Radio buttons (Cash, Bank Transfer, EMI)
+- If EMI selected, display EMI calculator: show monthly installment for 12, 24, and 36 months at 9% interest rate
+
+4. Action Buttons:
+- 'Confirm Purchase' button (disabled until checkbox is checked):
+  a) Update car status to 'sold' in LocalStorage
+  b) Create a purchase record with purchaseId, carId, buyerId, sellerId, purchaseDate, amount and store in 'purchases' array
+  c) Remove car from buyer's wishlist if present
+  d) Display success screen: 'Purchase Successful! Transaction ID: <purchaseId>' in green with a summary
+- 'Cancel' button – Navigate back to Car Details page
+
+* If the car is already sold (status check), display: 'Sorry, this car has already been sold' and disable the Confirm Purchase button."
+13,Seller Reviews and Ratings – UI,US013,"As a Buyer, I want to rate and review a seller after purchasing a car so that other buyers can make informed decisions.","* After a successful purchase, display a 'Rate this Seller' prompt on the Purchase Success screen.
+
+* Review Form:
+- Star Rating: Clickable 1 to 5 stars (required)
+- Review Comment: Text area (maximum 200 characters, optional)
+- Submit Review button
+
+* On submission:
+- Store the review object in 'reviews' array in LocalStorage with: reviewId, sellerId, buyerId, rating, comment, reviewDate
+- Display confirmation: 'Thank you for your review!'
+- The seller's average rating should be recalculated across all their reviews
+
+* Viewing Reviews (on Seller's profile or Car Details page):
+- Display average rating as stars with numeric value (e.g., ★★★★☆ 4.2)
+- Display total number of reviews: '(X reviews)'
+- List individual reviews showing: Buyer name (first name only), Rating stars, Comment text, Review date
+- Reviews sorted by most recent first
+
+* Validation:
+- A buyer can only review a seller once per purchase. If already reviewed, display: 'You have already reviewed this seller for this purchase.'"
+14,Purchase History – UI,US014,"As a Buyer, I want to view my purchase history so that I can track all cars I have bought.","* The Purchase History page should retrieve all purchases for the current buyer from 'purchases' array in LocalStorage.
+
+* Display:
+- Page heading: 'My Purchases (X total)'
+- Each purchase displayed as a card showing:
+  a) Transaction ID
+  b) Car Make, Model, Year
+  c) Purchase Date (formatted as DD-MMM-YYYY)
+  d) Amount Paid (formatted with ₹ and commas)
+  e) Seller Name and Rating at time of purchase
+
+* Each card should have:
+- 'View Car Details' button – Navigate to Car Details page (read-only, showing 'Sold' status)
+- 'Rate Seller' button – Navigate to Review form (only if not already reviewed)
+
+* Summary Section at the top:
+- Total Amount Spent: Sum of all purchase amounts, formatted
+- Total Cars Bought: Count of purchases
+- Most Recent Purchase: Date of last purchase
+
+* If no purchases exist, display: 'You have not purchased any cars yet. Start browsing!' with a link to Car Listings page."
+15,Contact Support and Help – UI,US015,"As a User, I want to access a support page so that I can get help with using the platform.","* The Contact Support page should display the following information:
+
+1. Contact Details Section:
+- Phone: +91-1800-XXX-XXXX (Toll Free)
+- Email: support@usedcarmart.com
+- Working Hours: Mon-Sat, 9 AM - 6 PM IST
+- Office Address: Display a placeholder address
+
+2. FAQ Section:
+- Display at least 5 frequently asked questions as expandable accordion items:
+  a) How do I list my car for sale?
+  b) How is the Car Health Score calculated?
+  c) What does the Price Alert warning mean?
+  d) How do I contact a seller?
+  e) Can I cancel a purchase?
+- Each FAQ expands/collapses on click showing the answer text
+
+3. Feedback Form:
+- Name: Pre-filled from logged-in user (read-only)
+- Subject: Dropdown (General Inquiry, Report a Bug, Report Fraud, Feedback, Other)
+- Message: Text area (minimum 20 characters, maximum 500 characters)
+- Submit button: Stores feedback in LocalStorage under 'feedbacks' array and displays: 'Thank you for your feedback! We will get back to you shortly.' in green
+
+* Navigation: A 'Back to Home' button at the bottom of the page."

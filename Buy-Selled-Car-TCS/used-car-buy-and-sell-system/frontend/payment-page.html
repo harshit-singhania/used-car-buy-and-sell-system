@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Page — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .page { min-height: 100vh; background: var(--bg); }
+    .top-nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .right-box { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
+    .welcome {
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+    .bill-amount {
+      font-size: 1.9rem;
+      font-weight: 900;
+      color: var(--accent);
+      margin-top: 0.35rem;
+      margin-bottom: 0.85rem;
+    }
+    .readonly-note {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 0.65rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    .actions { display: grid; gap: 0.65rem; margin-top: 0.9rem; }
+    .actions .btn { width: 100%; margin-top: 0; }
+    .radio-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .radio-item input { accent-color: var(--accent); }
+    .notification-list { display: grid; gap: 0.55rem; }
+    .notification-item {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      border-radius: 12px;
+      padding: 0.65rem;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top-nav">
+      <div class="top-nav-inner">
+        <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+        <div class="right-box">
+          <span class="welcome" id="welcome-user">Welcome User</span>
+          <button type="button" class="btn btn-secondary" style="width:auto;padding:0.45rem 0.8rem;" onclick="logoutCustomer()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="layout">
+        <section class="panel">
+          <h1 style="margin:0;color:var(--primary);font-size:1.4rem;">Payment Page</h1>
+          <p style="margin:0.45rem 0 0.85rem;color:var(--muted);">Pay your booking service bill securely.</p>
+
+          <label for="bill-amount" style="font-size:0.86rem;color:var(--muted);font-weight:800;">Bill Amount</label>
+          <div class="bill-amount" id="bill-amount">₹0</div>
+          <div class="readonly-note">Bill amount is auto-generated and cannot be edited by the customer.</div>
+
+          <div style="margin-top:1rem;">
+            <div style="font-size:0.86rem;color:var(--muted);font-weight:800;margin-bottom:0.35rem;">Mode of Payment</div>
+            <div class="radio-group" role="radiogroup" aria-label="Mode of Payment">
+              <label class="radio-item">
+                <input type="radio" name="payment-mode" value="Debit" checked>
+                <span>Debit</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="payment-mode" value="Credit">
+                <span>Credit</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-primary" onclick="proceedToCard()">Pay Now</button>
+            <button type="button" class="btn btn-secondary" onclick="goHome()">Back to Home</button>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <h2 style="margin:0;color:var(--primary);font-size:1.05rem;">Room Notifications</h2>
+          <p style="margin:0.4rem 0 0.75rem;color:var(--muted);font-size:0.86rem;font-weight:600;">Latest updates for your room booking status.</p>
+          <div id="notification-list" class="notification-list"></div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    const BOOKING_HISTORY_KEY = 'ucm_booking_history';
+    const ROOM_NOTIFICATIONS_KEY = 'ucm_room_notifications';
+
+    let currentUser = null;
+    let billAmount = 0;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      currentUser = getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+      if (String(currentUser.role || '').trim().toLowerCase() !== 'buyer') {
+        clearCurrentUser();
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('welcome-user').textContent =
+        'Welcome ' + (currentUser.fullName || currentUser.userId || 'Customer');
+
+      seedRoomNotificationsIfEmpty();
+      billAmount = calculateBillAmount();
+      renderBillAmount();
+      renderNotifications();
+    });
+
+    function calculateBillAmount() {
+      const userId = String(currentUser.userId || '').trim();
+      const bookings = JSON.parse(localStorage.getItem(BOOKING_HISTORY_KEY)) || [];
+      const total = bookings
+        .filter(function (entry) { return String(entry.userId || '').trim() === userId; })
+        .reduce(function (sum, entry) { return sum + Number(entry.billAmount || 0); }, 0);
+
+      // If there are no bookings yet, fall back to a demo value so UI is always usable.
+      return total > 0 ? total : 7800;
+    }
+
+    function renderBillAmount() {
+      document.getElementById('bill-amount').textContent = formatCurrency(billAmount);
+    }
+
+    function seedRoomNotificationsIfEmpty() {
+      const existing = JSON.parse(localStorage.getItem(ROOM_NOTIFICATIONS_KEY)) || [];
+      if (existing.length) return;
+
+      localStorage.setItem(ROOM_NOTIFICATIONS_KEY, JSON.stringify([
+        { userId: 'demoBuyer', message: 'Room A-101 is confirmed for check-in on 10-Apr-2026.' },
+        { userId: 'demoBuyer', message: 'Early check-in is available from 12:00 PM.' },
+        { userId: 'demoSeller', message: 'Room C-009 booking is completed successfully.' }
+      ]));
+    }
+
+    function renderNotifications() {
+      const box = document.getElementById('notification-list');
+      const all = JSON.parse(localStorage.getItem(ROOM_NOTIFICATIONS_KEY)) || [];
+      const userId = String(currentUser.userId || '').trim();
+
+      const list = all.filter(function (n) { return String(n.userId || '').trim() === userId; });
+
+      if (!list.length) {
+        box.innerHTML = '<div class="notification-item">No new room notifications.</div>';
+        return;
+      }
+
+      box.innerHTML = list.map(function (n) {
+        return '<div class="notification-item">' + escapeHtml(n.message) + '</div>';
+      }).join('');
+    }
+
+    function proceedToCard() {
+      const selected = document.querySelector('input[name="payment-mode"]:checked');
+      const mode = selected ? selected.value : 'Debit';
+      window.location.href = 'card-payment.html?amount=' + encodeURIComponent(String(billAmount)) + '&mode=' + encodeURIComponent(mode);
+    }
+
+    function goHome() {
+      window.location.href = 'buyer-home.html';
+    }
+
+    function logoutCustomer() {
+      clearCurrentUser();
+      window.location.href = 'login.html';
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+      }).format(Number(value || 0));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.proceedToCard = proceedToCard;
+    window.goHome = goHome;
+    window.logoutCustomer = logoutCustomer;
+  </script>
+</body>
+</html>
+

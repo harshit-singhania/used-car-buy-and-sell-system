@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Confirmation — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .purchase-page { min-height: 100vh; background: var(--bg); }
+    .top-nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .top-nav-links { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .top-nav-links a,
+    .top-nav-links button {
+      color: var(--text);
+      background: transparent;
+      border: none;
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+    }
+    .top-nav-links .active { background: #dbeafe; color: #1d4ed8; }
+    .page-wrapper { max-width: 1080px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .purchase-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(310px, 0.65fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+    .car-hero {
+      height: 190px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4.8rem;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.3);
+      margin-bottom: 0.9rem;
+    }
+    .muted { color: var(--muted); font-size: 0.86rem; }
+    .price { font-size: 1.8rem; font-weight: 900; color: var(--accent); margin: 0.5rem 0 0.75rem; }
+    .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .chip { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 0.55rem; font-size: 0.82rem; }
+    .chip b { display: block; color: var(--muted); font-size: 0.72rem; margin-bottom: 0.2rem; }
+    .section-title {
+      color: var(--primary);
+      font-size: 1.02rem;
+      font-weight: 800;
+      margin-bottom: 0.45rem;
+    }
+    .confirm-line {
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      font-size: 0.88rem;
+    }
+    .confirm-line input { margin-top: 0.2rem; }
+    .payment-methods {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.55rem;
+      margin-bottom: 0.75rem;
+    }
+    .payment-methods label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .emi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.45rem;
+    }
+    .emi-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+    }
+    .emi-box strong { display: block; color: var(--primary); margin-top: 0.2rem; }
+    .summary h3 { color: var(--primary); margin-bottom: 0.5rem; }
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 0.45rem 0;
+      font-size: 0.9rem;
+    }
+    .summary-total {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--primary);
+      border-top: 1px dashed var(--border);
+      padding-top: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    .actions { display: grid; gap: 0.65rem; margin-top: 1rem; }
+    .actions .btn { width: 100%; margin-top: 0; }
+    .alert { margin-bottom: 0.9rem; }
+    .alert.visible { display: block; }
+    .stars { display: flex; gap: 0.25rem; margin-top: 0.3rem; }
+    .star-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #9ca3af;
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .star-btn.active {
+      color: #d97706;
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .field-help { color: var(--muted); font-size: 0.78rem; margin-top: 0.2rem; }
+    @media (max-width: 980px) {
+      .purchase-grid { grid-template-columns: 1fr; }
+      .emi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="purchase-page">
+  <div id="nav-placeholder"></div>
+  <div class="page-wrapper">
+    <div id="error-alert" class="alert alert-error"></div>
+    <div id="success-alert" class="alert alert-success"></div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/cars.js"></script>
+<script>
+  const PURCHASES_KEY = 'ucm_purchases';
+  let currentUser = null;
+  let currentCar = null;
+  let selectedRating = 0;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    currentUser = getCurrentUser();
+
+    if (!currentUser) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (String(currentUser.role || '').trim().toLowerCase() !== 'buyer') {
+      clearCurrentUser();
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (typeof seedCarsIfEmpty === 'function') {
+      seedCarsIfEmpty();
+    }
+
+    renderNav();
+    loadPurchasePage();
+  });
+
+  function renderNav() {
+    document.getElementById('nav-placeholder').innerHTML = `
+      <header class="top-nav">
+        <div class="top-nav-inner">
+          <div class="brand-logo" style="font-size:1.55rem;">UsedCar<span>Mart</span></div>
+          <nav class="top-nav-links">
+            <a href="buyer-home.html">Home</a>
+            <a href="car-listings.html">Browse</a>
+            <a href="wishlist.html">Wishlist</a>
+            <a href="recently-viewed.html">Recent</a>
+            <a href="my-purchases.html">My Purchases</a>
+            <a href="compare-cars.html">Compare Cars</a>
+            <a href="support.html">Support</a>
+            <a href="purchase.html" class="active">Purchase</a>
+            <button type="button" onclick="logoutBuyer()">Logout</button>
+          </nav>
+        </div>
+      </header>
+    `;
+  }
+
+  function loadPurchasePage() {
+    const params = new URLSearchParams(window.location.search);
+    const reviewPurchaseId = params.get('reviewPurchase');
+
+    if (reviewPurchaseId) {
+      loadReviewMode(reviewPurchaseId);
+      return;
+    }
+
+    const carId = params.get('id');
+
+    if (!carId) {
+      showError('Missing car id in URL.');
+      renderNotFound();
+      return;
+    }
+
+    const car = getCarById(carId);
+
+    if (!car) {
+      showError('Car not found. It may have been removed.');
+      renderNotFound();
+      return;
+    }
+
+    currentCar = car;
+
+    if (String(car.status || '').toLowerCase() === 'sold') {
+      showError('Sorry, this car has already been sold.');
+      renderSoldState(car);
+      return;
+    }
+
+    renderCheckout(car);
+  }
+
+  function loadReviewMode(purchaseId) {
+    const buyerId = currentUser.id || currentUser.userId;
+    const purchases = JSON.parse(localStorage.getItem(PURCHASES_KEY)) || [];
+
+    const purchase = purchases.find(function (item) {
+      return String(item.id) === String(purchaseId) &&
+             String(item.buyerId) === String(buyerId);
+    });
+
+    if (!purchase) {
+      showError('Purchase not found for review.');
+      renderNotFound();
+      return;
+    }
+
+    const car = getCarById(purchase.carId);
+    if (!car) {
+      showError('Unable to load car details for this purchase.');
+      renderNotFound();
+      return;
+    }
+
+    renderReviewOnly(purchase, car);
+  }
+
+  function renderCheckout(car) {
+    const content = document.getElementById('content');
+    const score = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
+    const rating = getSellerRatingData(car.sellerId);
+    const seller = findSeller(car.sellerId);
+
+    content.innerHTML = `
+      <div class="purchase-grid">
+        <section class="card">
+          <div class="car-hero" style="background:${makeColor(car.make)};">${escapeHtml(String(car.make || '?').charAt(0))}</div>
+          <h2 style="color:var(--primary);margin:0 0 0.25rem;">${escapeHtml(car.make)} ${escapeHtml(car.model)}</h2>
+          <p class="muted">${escapeHtml(car.year)} • ${escapeHtml(car.fuelType)} • ${escapeHtml(car.transmission)} • ${escapeHtml(car.color || '—')}</p>
+          <div class="price">${formatPrice(car.price)}</div>
+
+          <div class="kv">
+            <div class="chip"><b>Health Score</b><span class="health-badge ${getHealthBand(score).cls}">${escapeHtml(String(score))} ${escapeHtml(getHealthBand(score).label)}</span></div>
+            <div class="chip"><b>Seller</b>${escapeHtml(seller ? (seller.fullName || seller.userId) : (car.sellerId || '—'))}</div>
+            <div class="chip"><b>Seller Rating</b>${rating ? `${renderStars(rating.avg)} ${escapeHtml(rating.avg)} (${escapeHtml(rating.count)} reviews)` : 'No reviews yet'}</div>
+            <div class="chip"><b>Mileage</b>${formatKilometers(car.mileage)}</div>
+          </div>
+
+          <div style="margin-top:1rem;display:grid;gap:0.75rem;">
+            <div>
+              <div class="section-title">Buyer Confirmation</div>
+              <div class="chip" style="display:grid;gap:0.35rem;">
+                <div><b>Name</b>${escapeHtml(currentUser.fullName || currentUser.userId)}</div>
+                <div><b>Email</b>${escapeHtml(currentUser.email || '—')}</div>
+                <div><b>Phone</b>${escapeHtml(currentUser.phone || '—')}</div>
+              </div>
+              <label class="confirm-line">
+                <input type="checkbox" id="confirm-checkbox" onchange="toggleConfirmButton()">
+                <span>I confirm that I want to purchase this car.</span>
+              </label>
+            </div>
+
+            <div>
+              <div class="section-title">Payment Method</div>
+              <div class="payment-methods">
+                <label><input type="radio" name="payment-method" value="Cash" checked onchange="toggleEmiCalculator()"> Cash</label>
+                <label><input type="radio" name="payment-method" value="Bank Transfer" onchange="toggleEmiCalculator()"> Bank Transfer</label>
+                <label><input type="radio" name="payment-method" value="EMI" onchange="toggleEmiCalculator()"> EMI</label>
+              </div>
+              <div id="emi-calculator" style="display:none;">
+                <div class="field-help">Estimated monthly installment at 9% annual interest.</div>
+                <div class="emi-grid">
+                  <div class="emi-box">12 months<strong>${formatPrice(calculateEmi(car.price, 12))}</strong></div>
+                  <div class="emi-box">24 months<strong>${formatPrice(calculateEmi(car.price, 24))}</strong></div>
+                  <div class="emi-box">36 months<strong>${formatPrice(calculateEmi(car.price, 36))}</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="card summary">
+          <h3>Order Summary</h3>
+          <div class="summary-row"><span>Vehicle Price</span><strong>${formatPrice(car.price)}</strong></div>
+          <div class="summary-row"><span>Platform Fee</span><strong>${formatPrice(0)}</strong></div>
+          <div class="summary-row"><span>Taxes/Charges</span><strong>${formatPrice(0)}</strong></div>
+          <div class="summary-row summary-total"><span>Total Payable</span><span>${formatPrice(car.price)}</span></div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="confirm-btn" onclick="confirmPurchase()" disabled>Confirm Purchase</button>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='car-details.html?id=${encodeURIComponent(car.id)}'">Cancel</button>
+          </div>
+        </aside>
+      </div>
+    `;
+
+    toggleConfirmButton();
+    toggleEmiCalculator();
+  }
+
+  function toggleConfirmButton() {
+    const checkbox = document.getElementById('confirm-checkbox');
+    const button = document.getElementById('confirm-btn');
+    if (!button) return;
+    button.disabled = !(checkbox && checkbox.checked);
+  }
+
+  function toggleEmiCalculator() {
+    const selected = getSelectedPaymentMethod();
+    const emiBox = document.getElementById('emi-calculator');
+    if (emiBox) {
+      emiBox.style.display = selected === 'EMI' ? 'block' : 'none';
+    }
+  }
+
+  function calculateEmi(amount, months) {
+    const principal = Number(amount || 0);
+    const n = Number(months || 0);
+    const r = 0.09 / 12;
+    if (!principal || !n) return 0;
+    const monthly = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    return Math.round(monthly);
+  }
+
+  function getSelectedPaymentMethod() {
+    const selected = document.querySelector('input[name="payment-method"]:checked');
+    return selected ? selected.value : 'Cash';
+  }
+
+  function confirmPurchase() {
+    if (!currentCar || !currentUser) return;
+
+    const checkbox = document.getElementById('confirm-checkbox');
+    if (!checkbox || !checkbox.checked) {
+      showError('Please confirm the purchase before proceeding.');
+      return;
+    }
+
+    const latest = getCarById(currentCar.id);
+    if (!latest || String(latest.status || '').toLowerCase() === 'sold') {
+      showError('This car was just sold by someone else. Please pick another listing.');
+      if (latest) renderSoldState(latest);
+      return;
+    }
+
+    markCarSold(currentCar.id);
+
+    const purchases = JSON.parse(localStorage.getItem(PURCHASES_KEY)) || [];
+    const paymentMethod = getSelectedPaymentMethod();
+    const seller = findSeller(currentCar.sellerId);
+    const ratingAtPurchase = getSellerRatingData(currentCar.sellerId);
+    const newPurchase = {
+      id: 'PUR' + Date.now(),
+      carId: currentCar.id,
+      buyerId: currentUser.id || currentUser.userId,
+      sellerId: currentCar.sellerId,
+      purchaseDate: new Date().toISOString(),
+      amount: Number(currentCar.price || 0),
+      paymentMethod: paymentMethod,
+      sellerNameAtPurchase: seller ? (seller.fullName || seller.userId || 'Seller') : 'Seller',
+      sellerRatingAtPurchase: ratingAtPurchase ? Number(ratingAtPurchase.avg) : null
+    };
+
+    purchases.push(newPurchase);
+    localStorage.setItem(PURCHASES_KEY, JSON.stringify(purchases));
+
+    removeInterestFlag(currentCar.id);
+    removeFromWishlist(currentCar.id);
+
+    showSuccess('Purchase successful! Transaction ID: ' + newPurchase.id);
+    renderReceipt(newPurchase, latest);
+  }
+
+  function renderReviewOnly(purchase, car) {
+    const sellerName = purchase.sellerNameAtPurchase || (findSeller(purchase.sellerId) || {}).fullName || purchase.sellerId || 'Seller';
+    const alreadyReviewed = getAllReviews().some(function (review) {
+      return String(review.purchaseId) === String(purchase.id) &&
+             String(review.buyerId) === String(currentUser.id || currentUser.userId);
+    });
+
+    document.getElementById('content').innerHTML = `
+      <div class="card" style="max-width:820px;margin:0 auto;">
+        <h2 style="color:var(--primary);margin-bottom:0.4rem;">Rate Seller</h2>
+        <p class="muted" style="margin-bottom:1rem;">Share your feedback for purchase <strong>${escapeHtml(purchase.id)}</strong>.</p>
+
+        <div class="kv" style="margin-bottom:1rem;">
+          <div class="chip"><b>Car</b>${escapeHtml(car.make)} ${escapeHtml(car.model)} (${escapeHtml(car.year)})</div>
+          <div class="chip"><b>Seller</b>${escapeHtml(sellerName)}</div>
+          <div class="chip"><b>Purchased On</b>${new Date(purchase.purchaseDate).toLocaleDateString('en-IN')}</div>
+          <div class="chip"><b>Amount Paid</b>${formatPrice(purchase.amount)}</div>
+        </div>
+
+        ${alreadyReviewed ? `
+          <div class="alert alert-success visible">You have already reviewed this seller for this purchase.</div>
+          <div class="actions" style="max-width:360px;">
+            <a class="btn btn-primary" href="my-purchases.html">Back to My Purchases</a>
+            <a class="btn btn-secondary" href="buyer-home.html">Back to Home</a>
+          </div>
+        ` : `
+          <div id="review-form">
+            <div>
+              <label style="font-size:0.86rem;font-weight:700;">Star Rating <span style="color:var(--error)">*</span></label>
+              <div class="stars">
+                <button type="button" class="star-btn" data-value="1" onclick="setStarRating(1)">★</button>
+                <button type="button" class="star-btn" data-value="2" onclick="setStarRating(2)">★</button>
+                <button type="button" class="star-btn" data-value="3" onclick="setStarRating(3)">★</button>
+                <button type="button" class="star-btn" data-value="4" onclick="setStarRating(4)">★</button>
+                <button type="button" class="star-btn" data-value="5" onclick="setStarRating(5)">★</button>
+              </div>
+            </div>
+
+            <div style="margin-top:0.65rem;">
+              <label for="review-comment" style="font-size:0.86rem;font-weight:700;">Review Comment (optional)</label>
+              <textarea id="review-comment" maxlength="200" rows="3" placeholder="Share your experience with this seller..."></textarea>
+              <div class="field-help">Maximum 200 characters.</div>
+            </div>
+
+            <div class="actions" style="grid-template-columns:1fr 1fr;max-width:460px;">
+              <button type="button" class="btn btn-primary" onclick="submitSellerReview('${escapeAttr(purchase.id)}', '${escapeAttr(purchase.sellerId)}')">Submit Review</button>
+              <a class="btn btn-secondary" href="my-purchases.html" style="text-align:center;line-height:1.2rem;">Cancel</a>
+            </div>
+          </div>
+
+          <div id="review-success" style="display:none;">
+            <p style="color:var(--success);font-weight:700;">Thank you for your review!</p>
+            <div class="actions" style="max-width:380px;">
+              <a class="btn btn-primary" href="my-purchases.html">Go to My Purchases</a>
+              <a class="btn btn-secondary" href="buyer-home.html">Back to Home</a>
+            </div>
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  function renderReceipt(purchase, car) {
+    document.getElementById('content').innerHTML = `
+      <div class="card" style="max-width:820px;margin:0 auto;">
+        <h2 style="color:var(--success);margin-bottom:0.4rem;">Purchase Successful!</h2>
+        <p class="muted" style="margin-bottom:1rem;">Your transaction is complete and this car is now marked as sold.</p>
+
+        <div class="kv" style="margin-bottom:1rem;">
+          <div class="chip"><b>Transaction ID</b>${escapeHtml(purchase.id)}</div>
+          <div class="chip"><b>Date</b>${new Date(purchase.purchaseDate).toLocaleString('en-IN')}</div>
+          <div class="chip"><b>Car</b>${escapeHtml(car.make)} ${escapeHtml(car.model)} (${escapeHtml(car.year)})</div>
+          <div class="chip"><b>Amount Paid</b>${formatPrice(purchase.amount)}</div>
+          <div class="chip"><b>Payment Method</b>${escapeHtml(purchase.paymentMethod || 'Cash')}</div>
+          <div class="chip"><b>Health Score</b>${escapeHtml(String(car.healthScore ?? calculateHealthScore(car.year, car.mileage)))}</div>
+        </div>
+
+        <div class="card" style="box-shadow:none;border-style:dashed;">
+          <div class="section-title">Rate this Seller</div>
+          <p class="muted" style="margin-bottom:0.6rem;">Your review helps other buyers make better decisions.</p>
+
+          <div id="review-form">
+            <div>
+              <label style="font-size:0.86rem;font-weight:700;">Star Rating <span style="color:var(--error)">*</span></label>
+              <div class="stars">
+                <button type="button" class="star-btn" data-value="1" onclick="setStarRating(1)">★</button>
+                <button type="button" class="star-btn" data-value="2" onclick="setStarRating(2)">★</button>
+                <button type="button" class="star-btn" data-value="3" onclick="setStarRating(3)">★</button>
+                <button type="button" class="star-btn" data-value="4" onclick="setStarRating(4)">★</button>
+                <button type="button" class="star-btn" data-value="5" onclick="setStarRating(5)">★</button>
+              </div>
+            </div>
+
+            <div style="margin-top:0.65rem;">
+              <label for="review-comment" style="font-size:0.86rem;font-weight:700;">Review Comment (optional)</label>
+              <textarea id="review-comment" maxlength="200" rows="3" placeholder="Share your experience with this seller..."></textarea>
+              <div class="field-help">Maximum 200 characters.</div>
+            </div>
+
+            <div class="actions" style="grid-template-columns:1fr 1fr;max-width:460px;">
+              <button type="button" class="btn btn-primary" onclick="submitSellerReview('${escapeAttr(purchase.id)}', '${escapeAttr(purchase.sellerId)}')">Submit Review</button>
+              <a class="btn btn-secondary" href="my-purchases.html" style="text-align:center;line-height:1.2rem;">Skip for Now</a>
+            </div>
+          </div>
+
+          <div id="review-success" style="display:none;">
+            <p style="color:var(--success);font-weight:700;">Thank you for your review!</p>
+            <div class="actions" style="max-width:380px;">
+              <a class="btn btn-primary" href="my-purchases.html">Go to My Purchases</a>
+              <a class="btn btn-secondary" href="buyer-home.html">Back to Home</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function setStarRating(value) {
+    selectedRating = Number(value || 0);
+    const stars = document.querySelectorAll('.star-btn');
+    stars.forEach(function (star) {
+      const v = Number(star.getAttribute('data-value'));
+      star.classList.toggle('active', v <= selectedRating);
+    });
+  }
+
+  function submitSellerReview(purchaseId, sellerId) {
+    const buyerId = currentUser.id || currentUser.userId;
+    const comment = (document.getElementById('review-comment') || { value: '' }).value.trim();
+
+    if (selectedRating < 1 || selectedRating > 5) {
+      showError('Please select a star rating before submitting your review.');
+      return;
+    }
+
+    const reviews = getAllReviews();
+
+    const alreadyReviewed = reviews.some(function (review) {
+      return String(review.purchaseId) === String(purchaseId) &&
+             String(review.buyerId) === String(buyerId);
+    });
+
+    if (alreadyReviewed) {
+      showError('You have already reviewed this seller for this purchase.');
+      return;
+    }
+
+    const review = {
+      reviewId: 'REV' + Date.now(),
+      purchaseId: purchaseId,
+      sellerId: sellerId,
+      buyerId: buyerId,
+      buyerName: String(currentUser.fullName || currentUser.userId || 'Buyer').split(' ')[0],
+      rating: selectedRating,
+      comment: comment,
+      reviewDate: new Date().toISOString()
+    };
+
+    reviews.push(review);
+
+    if (typeof saveReviews === 'function') {
+      saveReviews(reviews);
+    } else {
+      localStorage.setItem('ucm_reviews', JSON.stringify(reviews));
+    }
+
+    const form = document.getElementById('review-form');
+    const success = document.getElementById('review-success');
+    if (form) form.style.display = 'none';
+    if (success) success.style.display = 'block';
+    showSuccess('Thank you for your review!');
+  }
+
+  function removeInterestFlag(carId) {
+    const key = 'ucm_interested_' + String(currentUser.id || currentUser.userId || 'guest');
+    const list = JSON.parse(localStorage.getItem(key)) || [];
+    localStorage.setItem(key, JSON.stringify(list.filter(function (id) { return id !== carId; })));
+  }
+
+  function removeFromWishlist(carId) {
+    const userId = currentUser.id || currentUser.userId;
+    const key = 'ucm_wishlist_' + String(userId);
+    const list = JSON.parse(localStorage.getItem(key)) || [];
+    localStorage.setItem(key, JSON.stringify(list.filter(function (id) { return String(id) !== String(carId); })));
+  }
+
+  function findSeller(sellerId) {
+    const users = JSON.parse(localStorage.getItem('ucm_users')) || [];
+    return users.find(function (user) {
+      return String(user.id || user.userId) === String(sellerId);
+    }) || null;
+  }
+
+  function getSellerRatingData(sellerId) {
+    if (typeof getSellerRatingSummary === 'function') {
+      const summary = getSellerRatingSummary(sellerId);
+      if (summary) return summary;
+    }
+
+    const fallback = JSON.parse(localStorage.getItem('ucm_seller_ratings')) || [];
+    const mine = fallback.filter(function (r) {
+      return String(r.sellerId) === String(sellerId);
+    });
+    if (!mine.length) return null;
+    const avg = mine.reduce(function (sum, r) { return sum + Number(r.rating || 0); }, 0) / mine.length;
+    return { avg: avg.toFixed(1), count: mine.length };
+  }
+
+  function getAllReviews() {
+    return typeof getReviews === 'function'
+      ? getReviews()
+      : (JSON.parse(localStorage.getItem('ucm_reviews')) || []);
+  }
+
+  function renderStars(value) {
+    const rating = Math.round(Number(value || 0));
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+      stars += i <= rating ? '★' : '☆';
+    }
+    return stars;
+  }
+
+  function renderSoldState(car) {
+    document.getElementById('content').innerHTML = `
+      <div class="card" style="max-width:760px;margin:0 auto;text-align:center;">
+        <h2 style="color:var(--error);margin-bottom:0.5rem;">This car is no longer available</h2>
+        <p class="muted" style="margin-bottom:1rem;">${escapeHtml(car.make)} ${escapeHtml(car.model)} has already been purchased.</p>
+        <a class="btn btn-primary" href="car-listings.html" style="width:auto;">Browse Other Cars</a>
+      </div>
+    `;
+  }
+
+  function renderNotFound() {
+    document.getElementById('content').innerHTML = `
+      <div class="card" style="max-width:760px;margin:0 auto;text-align:center;">
+        <h2 style="color:var(--primary);margin-bottom:0.5rem;">Unable to load this purchase</h2>
+        <p class="muted" style="margin-bottom:1rem;">Please return to listings and choose an available car.</p>
+        <a class="btn btn-primary" href="car-listings.html" style="width:auto;">Go to Listings</a>
+      </div>
+    `;
+  }
+
+  function showError(message) {
+    const el = document.getElementById('error-alert');
+    const ok = document.getElementById('success-alert');
+    ok.classList.remove('visible');
+    el.textContent = message;
+    el.classList.add('visible');
+  }
+
+  function showSuccess(message) {
+    const el = document.getElementById('success-alert');
+    const err = document.getElementById('error-alert');
+    err.classList.remove('visible');
+    el.textContent = message;
+    el.classList.add('visible');
+  }
+
+  function logoutBuyer() {
+    clearCurrentUser();
+    window.location.href = 'login.html';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function escapeAttr(value) {
+    return String(value ?? '')
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '&quot;');
+  }
+
+  window.logoutBuyer = logoutBuyer;
+  window.confirmPurchase = confirmPurchase;
+  window.toggleConfirmButton = toggleConfirmButton;
+  window.toggleEmiCalculator = toggleEmiCalculator;
+  window.setStarRating = setStarRating;
+  window.submitSellerReview = submitSellerReview;
+</script>
+</body>
+</html>

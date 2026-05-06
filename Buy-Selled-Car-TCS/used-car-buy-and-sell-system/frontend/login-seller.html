@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Login — UsedCarMart</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-logo">UsedCar<span>Mart</span></div>
+      <div class="brand-tagline">India's Trusted Used Car Marketplace</div>
+    </div>
+
+    <h1 class="auth-title">Seller / Admin Login</h1>
+    <p class="auth-subtitle">Manage listings or review user booking history</p>
+
+    <!-- Lock warning — shown after 3 failed attempts -->
+    <div class="alert alert-error" id="lock-alert" style="display:none;">
+      &#128274; Account temporarily locked. Try again after refreshing the page.
+    </div>
+
+    <!-- Attempt counter — shown after first failure -->
+    <div class="alert alert-warning" id="login-error" style="display:none;"></div>
+
+    <form id="seller-login-form" novalidate>
+
+      <div class="field">
+        <label for="userId">User ID <span class="required">*</span></label>
+        <input type="text" id="userId" placeholder="Enter your Seller User ID"
+               minlength="5" maxlength="20" autocomplete="username">
+        <span class="error-msg" id="userId-error"></span>
+      </div>
+
+      <div class="field">
+        <label for="password">Password <span class="required">*</span></label>
+        <input type="password" id="password" placeholder="Enter your password"
+               maxlength="30" autocomplete="current-password">
+        <span class="error-msg" id="password-error"></span>
+        <div class="attempt-counter" id="attempt-counter" style="display:none;"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn">Login</button>
+
+    </form>
+
+    <div class="divider">or</div>
+
+    <p class="auth-footer">
+      Are you a Buyer? <a href="login.html">Buyer Login &rarr;</a>
+    </p>
+    <p class="auth-footer" style="margin-top:0.5rem;">
+      New User? <a href="register.html">Register here</a>
+    </p>
+
+    <div style="margin-top:1.25rem;background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:0.9rem 1rem;font-size:0.82rem;color:#92400e;">
+      <strong>Demo Credentials</strong><br>
+      User ID: <code style="background:#fef3c7;padding:0.1rem 0.35rem;border-radius:4px;">demoSeller</code> &nbsp;
+      Password: <code style="background:#fef3c7;padding:0.1rem 0.35rem;border-radius:4px;">Demo@1234</code><br>
+      User ID: <code style="background:#fef3c7;padding:0.1rem 0.35rem;border-radius:4px;">demoAdmin</code> &nbsp;
+      Password: <code style="background:#fef3c7;padding:0.1rem 0.35rem;border-radius:4px;">Admin@1234</code>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/cars.js"></script>
+<script>
+  seedUsersIfEmpty();
+  seedCarsIfEmpty();
+</script>
+<script>
+  const form        = document.getElementById('seller-login-form');
+  const submitBtn   = document.getElementById('submit-btn');
+  const lockAlert   = document.getElementById('lock-alert');
+  const loginError  = document.getElementById('login-error');
+  const attemptCtr  = document.getElementById('attempt-counter');
+
+  const MAX_ATTEMPTS = 3;
+  let failedAttempts = 0;  /* resets on page refresh, per spec */
+
+  function isLocked() {
+    return failedAttempts >= MAX_ATTEMPTS;
+  }
+
+  function recordFailure() {
+    failedAttempts++;
+    if (isLocked()) {
+      /* Show permanent lock message, disable form */
+      lockAlert.style.display = 'block';
+      loginError.style.display = 'none';
+      attemptCtr.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.5';
+      submitBtn.style.cursor = 'not-allowed';
+      document.getElementById('userId').disabled   = true;
+      document.getElementById('password').disabled = true;
+    } else {
+      const remaining = MAX_ATTEMPTS - failedAttempts;
+      attemptCtr.style.display = 'block';
+      attemptCtr.textContent   = `${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lock`;
+    }
+  }
+
+  /* Clear errors on input */
+  ['userId', 'password'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function () {
+      clearFieldError(id);
+      loginError.style.display = 'none';
+    });
+  });
+
+  /* ── Submit ──────────────────────────────────────── */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (isLocked()) return;  /* belt-and-suspenders guard */
+
+    clearFieldError('userId');
+    clearFieldError('password');
+    loginError.style.display = 'none';
+
+    const userId   = document.getElementById('userId').value.trim();
+    const password = document.getElementById('password').value;
+
+    /* Both fields required */
+    if (!userId || !password) {
+      loginError.textContent   = 'Please fill in all fields';
+      loginError.style.display = 'block';
+      if (!userId)   showFieldError('userId',   'User ID is required');
+      if (!password) showFieldError('password', 'Password is required');
+      return;
+    }
+
+    const users = getUsers();
+    const user  = users.find(u => u.userId === userId && u.password === password);
+
+    if (!user) {
+      /* Wrong credentials — count the failure */
+      loginError.textContent   = 'Invalid User ID or Password';
+      loginError.style.display = 'block';
+      recordFailure();
+      return;
+    }
+
+    /* Correct credentials — now check role */
+    if (user.role === 'Buyer') {
+      loginError.textContent   = 'Access denied. Please use Buyer login.';
+      loginError.style.display = 'block';
+      /* Role mismatch does NOT count as a failed attempt */
+      return;
+    }
+
+    /* Seller/Admin authenticated successfully */
+    setCurrentUser(user);
+
+    const role = String(user.role || '').trim().toLowerCase();
+    if (role === 'admin') {
+      window.location.href = 'admin-dashboard.html';
+      return;
+    }
+
+    window.location.href = 'seller-dashboard.html';
+  });
+</script>
+
+</body>
+</html>

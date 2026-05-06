@@ -1,0 +1,387 @@
+SlNo,Feature,Story Number,Description (Card),Acceptance Criteria (Confirmation)
+1,Available Cars – UNIX,US001,"As an admin, I want to retrieve the details of all cars that are marked as available so that I can view current inventory.","* The file cars.txt contains the following data in the order:
+
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Sample data:
+1|Maruti|Swift|2020|450000|35000|Petrol|Manual|White|seller01|available|2025-01-15|24
+2|Hyundai|Creta|2021|980000|22000|Diesel|Automatic|Black|seller02|sold|2025-02-10|45
+3|Honda|City|2019|620000|48000|Petrol|Manual|Silver|seller01|available|2025-03-05|18
+
+Write a Unix command to retrieve the car_id, make, model, year, price, and fuel_type for all cars where status = available.
+
+Command:
+awk -F'|' '$11==""available"" {print $1, $2, $3, $4, $5, $7}' cars.txt
+
+The output should display only available cars with their key details.
+
+* This maps to Frontend US006 (Car Listing Page) and SQL US011 (Smart Search queries)."
+2,Count Available Cars by Fuel Type – UNIX,US002,"As an admin, I want to count the number of available cars grouped by fuel type so that I can understand the inventory distribution.","* The file cars.txt contains data in the order:
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Write a Unix command to count the number of available cars for each fuel type (Petrol, Diesel, CNG, Electric).
+
+Command:
+awk -F'|' '$11==""available"" {count[$7]++} END {for (ft in count) print ft, count[ft]}' cars.txt
+
+The output should display:
+Petrol 5
+Diesel 3
+CNG 1
+Electric 2
+
+Also write a command to get the total count of available cars:
+grep -c ""|available|"" cars.txt
+
+* This maps to Frontend US006 (Smart Filter - Fuel Type) and SQL US011 (Filter by Fuel Type query)."
+3,Smart Search and Filtering – UNIX,US003,"As a buyer, I want to search and filter cars by various criteria so that I can find cars matching my preferences.","* The file cars.txt contains data in the order:
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Write Unix commands for the following filter operations on available cars:
+
+1. Filter by Brand/Make (e.g., Maruti):
+awk -F'|' '$2==""Maruti"" && $11==""available"" {print $1, $2, $3, $4, $5}' cars.txt
+
+2. Filter by Price Range (e.g., between 300000 and 800000):
+awk -F'|' '$11==""available"" && $5>=300000 && $5<=800000 {print $1, $2, $3, $5}' cars.txt
+
+3. Filter by Year Range (e.g., 2018 to 2024):
+awk -F'|' '$11==""available"" && $4>=2018 && $4<=2024 {print $1, $2, $3, $4, $5}' cars.txt
+
+4. Filter by Transmission type (e.g., Automatic):
+awk -F'|' '$8==""Automatic"" && $11==""available"" {print $1, $2, $3, $5, $8}' cars.txt
+
+5. Combined Multi-Filter (Petrol + price between 200000-700000 + year >= 2018):
+awk -F'|' '$7==""Petrol"" && $5>=200000 && $5<=700000 && $4>=2018 && $11==""available"" {print $1, $2, $3, $4, $5, $7}' cars.txt
+
+6. Search by car model name using grep:
+grep -i ""swift"" cars.txt | awk -F'|' '$11==""available"" {print $1, $2, $3, $5}'
+
+Each command should output car details matching the specified criteria.
+If no cars match, the output should be empty (no results).
+
+* This maps to Frontend US006 (Smart Filter Panel) and SQL US011 (Multi-criteria filter queries)."
+4,Sort Cars by Price and Popularity – UNIX,US004,"As a buyer, I want to sort available cars by price and popularity so that I can find the best deals or most viewed cars.","* The file cars.txt contains data in the order:
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Write Unix commands for the following sort operations:
+
+1. Sort available cars by Price (Low to High):
+awk -F'|' '$11==""available""' cars.txt | sort -t'|' -k5 -n
+
+2. Sort available cars by Price (High to Low):
+awk -F'|' '$11==""available""' cars.txt | sort -t'|' -k5 -rn
+
+3. Sort available cars by Newest Listings (latest listing_date first):
+awk -F'|' '$11==""available""' cars.txt | sort -t'|' -k12 -r
+
+4. Sort available cars by Most Popular (highest view_count first):
+awk -F'|' '$11==""available""' cars.txt | sort -t'|' -k13 -rn
+
+5. Display top 5 most viewed available cars:
+awk -F'|' '$11==""available""' cars.txt | sort -t'|' -k13 -rn | head -5
+
+Each command should output the full car record sorted by the specified criteria.
+
+* This maps to Frontend US006 (Sorting Options) and SQL US011 (Sort queries)."
+5,Car Health Score Calculation – UNIX,US005,"As a system, I want to calculate the health score of each car based on year and mileage so that buyers can assess car condition.","* The file cars.txt contains data in the order:
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Write a Unix command to calculate the health score for each available car using the formula:
+health_score = 100 - (current_year - car_year) * 3 - (mileage / 10000) * 2
+The score should be clamped between 0 and 100.
+
+Command:
+awk -F'|' 'BEGIN {cy=2026} $11==""available"" {score=100-(cy-$4)*3-($6/10000)*2; if(score<0) score=0; if(score>100) score=100; grade=(score>=70?""Excellent"":(score>=40?""Good"":""Poor"")); print $1, $2, $3, $4, $6""km"", sprintf(""%.1f"",score), grade}' cars.txt
+
+The output should display:
+car_id make model year mileage health_score grade
+
+Sort by health score descending to show best condition cars first:
+awk -F'|' 'BEGIN {cy=2026} $11==""available"" {score=100-(cy-$4)*3-($6/10000)*2; if(score<0) score=0; if(score>100) score=100; print $1, $2, $3, sprintf(""%.1f"",score)}' cars.txt | sort -k4 -rn
+
+Display top 4 cars by health score (Featured Cars for homepage):
+awk -F'|' 'BEGIN {cy=2026} $11==""available"" {score=100-(cy-$4)*3-($6/10000)*2; if(score<0) score=0; if(score>100) score=100; print $1, $2, $3, $5, sprintf(""%.1f"",score)}' cars.txt | sort -k5 -rn | head -4
+
+* This maps to Frontend US004 (Featured Cars by Health Score) and SQL US009 (Health Score Calculation query)."
+6,Fraud Detection – Price Anomaly – UNIX,US006,"As a system, I want to detect car listings with abnormally low prices compared to market average so that suspicious listings are flagged.","* The file cars.txt contains data in the order:
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Write Unix commands to detect fraudulent listings where price is more than 40% below the average price for the same make and year.
+
+Step 1 - Calculate average price per make and year:
+awk -F'|' '$11==""available"" {sum[$2""|""$4]+=$5; count[$2""|""$4]++} END {for (k in sum) print k, sum[k]/count[k]}' cars.txt
+
+Step 2 - Flag cars priced more than 40% below average for their make+year group:
+awk -F'|' '$11==""available"" {key=$2""|""$4; sum[key]+=$5; count[key]++; cars[NR]=$0} END {for (i in cars) {split(cars[i],f,""|""); key=f[2]""|""f[4]; avg=sum[key]/count[key]; if(f[5] < avg*0.60) print ""FLAGGED:"", f[1], f[2], f[3], ""Price:""f[5], ""Avg:""sprintf(""%.0f"",avg), ""Deviation:""sprintf(""%.1f"",(avg-f[5])/avg*100)""%""}}' cars.txt
+
+The output should display flagged car details with their price, market average, and percentage deviation.
+
+Example output:
+FLAGGED: 7 Honda City Price:180000 Avg:620000 Deviation:71.0%
+
+If no cars are flagged, the output should be empty.
+
+* This maps to Frontend US007 (Fraud Detection Section) and SQL US010 (Fraud Detection query)."
+7,Price Comparison – Market Average – UNIX,US007,"As a buyer, I want to compare a car's price against the market average for the same make and year so that I can evaluate if the price is fair.","* The file cars.txt contains data in the order:
+car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+The fields are separated by a pipe (""|"").
+
+Write a Unix command to display each available car alongside its market average price and percentage difference.
+
+Command:
+awk -F'|' '$11==""available"" {key=$2""|""$4; sum[key]+=$5; count[key]++; idx++; cars[idx]=$0} END {for (i=1; i<=idx; i++) {split(cars[i],f,""|""); if(f[11]==""available"") {key=f[2]""|""f[4]; avg=sum[key]/count[key]; diff=((f[5]-avg)/avg)*100; pos=(diff<0?""Below"":""Above""); print f[1], f[2], f[3], f[4], ""Price:""f[5], ""Avg:""sprintf(""%.0f"",avg), sprintf(""%.1f"",diff)""%"", pos}}}' cars.txt
+
+The output should display:
+car_id make model year Price:<price> Avg:<avg_price> <diff>% Above/Below
+
+For a specific car (e.g., car_id = 3):
+awk -F'|' '{if($11==""available""){key=$2""|""$4; sum[key]+=$5; count[key]++} if($1==3) {id=$1; mk=$2; md=$3; yr=$4; pr=$5}} END {key=mk""|""yr; avg=sum[key]/count[key]; diff=((pr-avg)/avg)*100; print ""Car:"", id, mk, md, yr, ""Price:""pr, ""Market Avg:""sprintf(""%.0f"",avg), sprintf(""%.1f%%"",diff)}' cars.txt
+
+* This maps to Frontend US007 (Price Comparison Indicator) and SQL US017 (Price Comparison queries)."
+8,Seller Rating Aggregation – UNIX,US008,"As a system, I want to calculate average ratings for each seller so that seller reputation can be displayed.","* The file reviews.txt contains the following data in the order:
+review_id|seller_id|buyer_id|rating|comment|review_date
+The fields are separated by a pipe (""|"").
+
+Sample data:
+1|seller01|buyer01|4|Good condition car|2025-04-10
+2|seller01|buyer02|5|Excellent service|2025-04-15
+3|seller02|buyer03|3|Average experience|2025-05-01
+
+Write Unix commands for seller rating analytics:
+
+1. Calculate average rating per seller:
+awk -F'|' '{sum[$2]+=$4; count[$2]++} END {for (s in sum) printf ""%s AvgRating: %.1f (%d reviews)\n"", s, sum[s]/count[s], count[s]}' reviews.txt
+
+2. Find the highest rated seller:
+awk -F'|' '{sum[$2]+=$4; count[$2]++} END {for (s in sum) {avg=sum[s]/count[s]; if(avg>max) {max=avg; best=s}} print ""Top Seller:"", best, ""Rating:"", sprintf(""%.1f"",max)}' reviews.txt
+
+3. Count reviews per rating level (rating breakdown):
+awk -F'|' '{count[$4]++} END {for (r=5; r>=1; r--) printf ""%d-star: %d reviews\n"", r, count[r]+0}' reviews.txt
+
+4. List all reviews for a specific seller (e.g., seller01):
+awk -F'|' '$2==""seller01"" {print ""Rating:""$4, ""Comment:""$5, ""Date:""$6}' reviews.txt
+
+5. Find sellers with average rating below 3 (low-rated sellers warning):
+awk -F'|' '{sum[$2]+=$4; count[$2]++} END {for (s in sum) if(sum[s]/count[s]<3) print ""LOW RATED:"", s, sprintf(""%.1f"",sum[s]/count[s])}' reviews.txt
+
+* This maps to Frontend US013 (Seller Reviews and Ratings) and SQL US006/US015 (Reviews table and rating queries)."
+9,Wishlist Operations – UNIX,US009,"As a buyer, I want to manage my wishlist using flat file operations so that I can save and view my favorite cars.","* The file wishlists.txt contains the following data in the order:
+user_id|car_id|added_date
+The fields are separated by a pipe (""|"").
+
+Sample data:
+buyer01|3|2025-04-10
+buyer01|7|2025-04-12
+buyer02|5|2025-04-15
+
+Write Unix commands for the following wishlist operations:
+
+1. View all wishlisted cars for a specific buyer (e.g., buyer01) with car details:
+awk -F'|' '$1==""buyer01"" {print $2}' wishlists.txt | while read cid; do awk -F'|' -v id=""$cid"" '$1==id {print $1, $2, $3, $4, $5, $11}' cars.txt; done
+
+2. Count total wishlisted cars for a buyer:
+awk -F'|' '$1==""buyer01""' wishlists.txt | wc -l
+
+3. Add a car to wishlist (simulate using echo):
+echo ""buyer01|10|2025-05-03"" >> wishlists.txt
+
+4. Remove a car from wishlist (e.g., buyer01 removes car_id 7):
+sed -i '/^buyer01|7|/d' wishlists.txt
+
+5. Check if a car is already in a buyer's wishlist (prevent duplicates):
+grep -c ""^buyer01|3|"" wishlists.txt
+
+If count > 0, the car already exists in the wishlist.
+
+6. Find the most wishlisted car across all buyers:
+awk -F'|' '{count[$2]++} END {for (c in count) print c, count[c]}' wishlists.txt | sort -k2 -rn | head -1
+
+* This maps to Frontend US009 (Wishlist Page) and SQL US005/US013 (Wishlist table and operations)."
+10,Recently Viewed Cars – UNIX,US010,"As a system, I want to track and retrieve recently viewed cars for each buyer so that browsing history is maintained.","* The file car_views.txt contains the following data in the order:
+user_id|car_id|viewed_at
+The fields are separated by a pipe (""|"").
+
+Sample data:
+buyer01|3|2025-04-10 14:30:00
+buyer01|7|2025-04-10 15:00:00
+buyer01|3|2025-04-11 10:00:00
+buyer02|5|2025-04-11 11:30:00
+
+Write Unix commands for the following recently viewed operations:
+
+1. Retrieve the 10 most recently viewed cars for a buyer (e.g., buyer01), sorted by most recent, no duplicates (latest view only):
+grep ""^buyer01|"" car_views.txt | sort -t'|' -k3 -r | awk -F'|' '!seen[$2]++' | head -10
+
+2. Display recently viewed cars with full car details:
+grep ""^buyer01|"" car_views.txt | sort -t'|' -k3 -r | awk -F'|' '!seen[$2]++ {print $2}' | head -10 | while read cid; do awk -F'|' -v id=""$cid"" '$1==id {print $1, $2, $3, $5, $11}' cars.txt; done
+
+3. Record a new car view (simulate):
+echo ""buyer01|12|2025-05-03 16:45:00"" >> car_views.txt
+
+4. Count total views per car (for view count tracking):
+awk -F'|' '{count[$2]++} END {for (c in count) print ""CarID:""c, ""Views:""count[c]}' car_views.txt | sort -t':' -k3 -rn
+
+5. Increment view count in cars.txt for a specific car (e.g., car_id 3):
+awk -F'|' 'BEGIN{OFS=""|""} $1==3 {$13=$13+1} {print}' cars.txt > tmp.txt && mv tmp.txt cars.txt
+
+* This maps to Frontend US010 (Recently Viewed Cars) and SQL US007/US014 (CarViews table and queries)."
+11,Recommendation System – UNIX,US011,"As a system, I want to generate car recommendations based on a buyer's last viewed car so that personalized suggestions are provided.","* The files cars.txt and car_views.txt are used together for recommendation logic.
+
+cars.txt format: car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+car_views.txt format: user_id|car_id|viewed_at
+The fields are separated by a pipe (""|"").
+
+Write Unix commands for the following recommendation scenarios:
+
+1. Get the last viewed car for a buyer (e.g., buyer01):
+grep ""^buyer01|"" car_views.txt | sort -t'|' -k3 -r | head -1 | awk -F'|' '{print $2}'
+
+2. Get the fuel type and price of the last viewed car (assume car_id 3):
+awk -F'|' '$1==3 {print $5, $7}' cars.txt
+
+3. Recommend available cars with same fuel type and price within ±20% of last viewed car (e.g., price=620000, fuel=Petrol):
+awk -F'|' '$11==""available"" && $7==""Petrol"" && $5>=496000 && $5<=744000 && $1!=3 {print $1, $2, $3, $5, $7}' cars.txt | head -3
+
+4. Fallback - Show 3 most recently listed available cars (when no view history):
+awk -F'|' '$11==""available""' cars.txt | sort -t'|' -k12 -r | head -3 | awk -F'|' '{print $1, $2, $3, $5, $12}'
+
+5. People Also Viewed - Find cars viewed by other buyers who also viewed the same car (e.g., car_id 3):
+awk -F'|' '$2==3 {print $1}' car_views.txt | sort -u | while read uid; do awk -F'|' -v u=""$uid"" '$1==u && $2!=3 {print $2}' car_views.txt; done | sort | uniq -c | sort -rn | head -3
+
+The output shows the top 3 car IDs that were also viewed by users who viewed car 3.
+
+* This maps to Frontend US004 (Recommendation Section) / US007 (People Also Viewed) and SQL US012 (Recommendation queries)."
+12,Purchase History and Analytics – UNIX,US012,"As an admin, I want to analyze purchase history and generate sales reports so that business performance can be tracked.","* The file purchases.txt contains the following data in the order:
+purchase_id|car_id|buyer_id|seller_id|purchase_date|amount|payment_method
+The fields are separated by a pipe (""|"").
+
+Sample data:
+1|3|buyer01|seller01|2025-04-10|620000|Cash
+2|7|buyer02|seller02|2025-04-15|450000|EMI
+3|12|buyer01|seller01|2025-05-01|980000|Bank Transfer
+
+Write Unix commands for the following purchase analytics:
+
+1. View all purchases for a specific buyer (e.g., buyer01):
+awk -F'|' '$3==""buyer01"" {print ""TxnID:""$1, ""CarID:""$2, ""Date:""$5, ""Amount:""$6, ""Method:""$7}' purchases.txt
+
+2. Calculate total amount spent by a buyer:
+awk -F'|' '$3==""buyer01"" {total+=$6} END {printf ""Total Spent: Rs %.0f\n"", total}' purchases.txt
+
+3. Count total purchases by a buyer:
+grep -c ""|buyer01|"" purchases.txt
+
+4. Calculate total revenue per seller:
+awk -F'|' '{rev[$4]+=$6; count[$4]++} END {for (s in rev) printf ""%s Revenue: Rs %.0f (%d sales)\n"", s, rev[s], count[s]}' purchases.txt
+
+5. Find the most expensive purchase:
+sort -t'|' -k6 -rn purchases.txt | head -1 | awk -F'|' '{print ""Highest Sale: TxnID""$1, ""Amount:""$6, ""Car:""$2}'
+
+6. Count purchases by payment method:
+awk -F'|' '{count[$7]++} END {for (m in count) print m"":"", count[m]}' purchases.txt
+
+7. Calculate overall average sale price:
+awk -F'|' '{sum+=$6; c++} END {printf ""Average Sale Price: Rs %.0f\n"", sum/c}' purchases.txt
+
+* This maps to Frontend US014 (Purchase History) and SQL US004/US016 (Purchases table and analytics queries)."
+13,Seller Performance Dashboard – UNIX,US013,"As a seller, I want to view my performance metrics from flat files so that I can track my listings and sales.","* The files cars.txt, purchases.txt, and reviews.txt are used together.
+
+cars.txt format: car_id|make|model|year|price|mileage|fuel_type|transmission|color|seller_id|status|listing_date|view_count
+purchases.txt format: purchase_id|car_id|buyer_id|seller_id|purchase_date|amount|payment_method
+reviews.txt format: review_id|seller_id|buyer_id|rating|comment|review_date
+The fields are separated by a pipe (""|"").
+
+Write Unix commands to generate a seller dashboard for a specific seller (e.g., seller01):
+
+1. Total cars listed by seller:
+awk -F'|' '$10==""seller01""' cars.txt | wc -l
+
+2. Cars available vs sold:
+echo ""Available:"" $(awk -F'|' '$10==""seller01"" && $11==""available""' cars.txt | wc -l)
+echo ""Sold:"" $(awk -F'|' '$10==""seller01"" && $11==""sold""' cars.txt | wc -l)
+
+3. Total revenue from sales:
+awk -F'|' '$4==""seller01"" {total+=$6} END {printf ""Total Revenue: Rs %.0f\n"", total}' purchases.txt
+
+4. Average seller rating:
+awk -F'|' '$2==""seller01"" {sum+=$4; c++} END {printf ""Avg Rating: %.1f/5 (%d reviews)\n"", sum/c, c}' reviews.txt
+
+5. Most viewed listing by this seller:
+awk -F'|' '$10==""seller01"" && $11==""available""' cars.txt | sort -t'|' -k13 -rn | head -1 | awk -F'|' '{print ""Most Popular:"", $2, $3, ""("" $13 "" views)""}'
+
+6. List all active listings with fraud flag check:
+awk -F'|' '$10==""seller01"" && $11==""available"" {key=$2""|""$4; sum[key]+=$5; count[key]++; cars[NR]=$0} END {for (i in cars) {split(cars[i],f,""|""); key=f[2]""|""f[4]; avg=sum[key]/count[key]; flag=(f[5]<avg*0.60?""FLAGGED"":""OK""); print f[1], f[2], f[3], f[5], flag}}' cars.txt
+
+* This maps to Frontend US005 (Seller Dashboard) and SQL US015 (Seller dashboard summary query)."
+14,User Data Retrieval and Search – UNIX,US014,"As an admin, I want to search and retrieve user details from the users file so that I can manage buyer and seller accounts.","* The file users.txt contains the following data in the order:
+user_id|full_name|email|mobile_number|password|city|role|registration_date
+The fields are separated by a pipe (""|"").
+
+Sample data:
+buyer01|Rahul Sharma|rahul@email.com|9876543210|Pass@123|Delhi|buyer|2025-01-10
+seller01|Priya Singh|priya@email.com|9123456789|Sell@456|Mumbai|seller|2025-01-05
+
+Write Unix commands for the following user operations:
+
+1. Retrieve all buyers:
+awk -F'|' '$7==""buyer"" {print $1, $2, $3, $6}' users.txt
+
+2. Retrieve all sellers:
+awk -F'|' '$7==""seller"" {print $1, $2, $3, $6}' users.txt
+
+3. Count total buyers and sellers:
+echo ""Buyers:"" $(grep -c ""|buyer|"" users.txt)
+echo ""Sellers:"" $(grep -c ""|seller|"" users.txt)
+
+4. Search user by name (e.g., name containing Rahul):
+grep -i ""Rahul"" users.txt | awk -F'|' '{print $1, $2, $3, $7}'
+
+5. Retrieve users from a specific city (e.g., Delhi):
+awk -F'|' '$6==""Delhi"" {print $1, $2, $7}' users.txt
+
+6. Validate login credentials (check user_id and password match):
+awk -F'|' '$1==""buyer01"" && $5==""Pass@123"" {print ""Login Successful:"", $2, ""("" $7 "")""}' users.txt
+
+If no output, the credentials are invalid.
+
+7. Add a new user (simulate using echo):
+echo ""buyer03|Amit Kumar|amit@email.com|9988776655|Amit@789|Bangalore|buyer|2025-05-03"" >> users.txt
+
+* This maps to Frontend US001/US002/US003 (Registration and Login) and SQL US001/US018 (Users table and authentication)."
+15,Feedback Analysis – UNIX,US015,"As an admin, I want to analyze user feedback from the feedback file so that common issues can be identified and addressed.","* The file feedbacks.txt contains the following data in the order:
+feedback_id|user_id|subject|message|submitted_date
+The fields are separated by a pipe (""|"").
+
+Sample data:
+1|buyer01|Report Fraud|Suspicious pricing on car ID 7|2025-04-20
+2|buyer02|Feedback|Great platform easy to use|2025-04-22
+3|seller01|Report a Bug|Unable to update car price|2025-04-25
+
+Write Unix commands for the following feedback analytics:
+
+1. Count total feedback entries:
+wc -l < feedbacks.txt
+
+2. Count feedback by subject category:
+awk -F'|' '{count[$3]++} END {for (s in count) print s"":"", count[s]}' feedbacks.txt
+
+3. Retrieve all fraud reports:
+awk -F'|' '$3==""Report Fraud"" {print ""ID:""$1, ""User:""$2, ""Message:""$4, ""Date:""$5}' feedbacks.txt
+
+4. Retrieve all feedback for a specific user (e.g., buyer01):
+awk -F'|' '$2==""buyer01"" {print $1, $3, $4, $5}' feedbacks.txt
+
+5. Find feedback containing a specific keyword (e.g., pricing):
+grep -i ""pricing"" feedbacks.txt | awk -F'|' '{print $1, $2, $4}'
+
+6. Sort feedback by most recent:
+sort -t'|' -k5 -r feedbacks.txt | awk -F'|' '{print $1, $3, $4, $5}'
+
+* This maps to Frontend US015 (Contact Support and Help) and SQL US008 (Feedbacks table)."
