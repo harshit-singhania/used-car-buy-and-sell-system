@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class Main {
+public class Man {
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
@@ -11,12 +11,12 @@ public class Main {
             System.out.println("\n===== USED CAR SYSTEM =====");
 
             if (!service.hasActiveSession()) {
-                // 🔒 Only show allowed options
+                // Only show allowed options
                 System.out.println("1. Register");
                 System.out.println("2. Login");
                 System.out.println("12. Exit");
             } else {
-                // 🔓 Full menu after login
+                // Full menu after login
                 System.out.println("1.Register 2.Login 3.AddCar 4.Browse");
                 System.out.println("5.ViewCar 6.BuyCar 7.Wishlist");
                 System.out.println("8.Recent 9.MyOrders 10.AllOrders");
@@ -26,9 +26,9 @@ public class Main {
 
             int ch = sc.nextInt();
 
-            // 🔐 GLOBAL PROTECTION (MAIN FIX)
+            // GLOBAL PROTECTION (MAIN FIX)
             if (!service.hasActiveSession() && ch != 1 && ch != 2 && ch != 12) {
-                System.out.println("❌ Please login first! Only Register/Login allowed.");
+                System.out.println("Please login first! Only Register/Login allowed.");
                 continue;
             }
 
