@@ -304,22 +304,15 @@
       font-weight: 600;
     }
 
-    .fraud-badge {
-      margin-top: 0.55rem;
-      border-radius: 8px;
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      color: #9a3412;
-      padding: 0.4rem 0.55rem;
-      font-size: 0.74rem;
-      font-weight: 700;
-    }
-
     .car-actions {
       margin-top: 0.75rem;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
       gap: 0.5rem;
+    }
+
+    .car-actions .btn {
+      flex: 1;
+      white-space: nowrap;
     }
 
     .btn {
@@ -433,7 +426,7 @@
       }
 
       .car-actions {
-        grid-template-columns: 1fr;
+        flex-direction: column;
       }
 
       .sort-select {
@@ -576,7 +569,6 @@
             <a href="wishlist.html">Wishlist</a>
             <a href="recently-viewed.html">Recent</a>
             <a href="my-purchases.html">My Purchases</a>
-            <a href="compare-cars.html">Compare Cars</a>
             <a href="support.html">Support</a>
             <button type="button" onclick="logoutBuyer()">Logout</button>
           </nav>
@@ -832,7 +824,6 @@
         <div class="car-card-body">
           <div class="car-card-header">
             <h3 class="car-card-title">${escapeHtml(car.make)} ${escapeHtml(car.model)}</h3>
-            ${car.fraudFlag ? '<span title="Price Alert">⚠️</span>' : ''}
           </div>
 
           <p class="car-subtitle">${escapeHtml(car.year)} &bull; ${escapeHtml(car.fuelType)} &bull; ${escapeHtml(car.transmission)}</p>
@@ -843,7 +834,6 @@
             <span class="view-count">👁 ${Number(car.viewCount || 0)} views</span>
           </div>
 
-          ${car.fraudFlag ? '<div class="fraud-badge">⚠ Price Alert — compare carefully with market average.</div>' : ''}
 
           <div class="car-actions">
             <a class="btn btn-secondary" href="car-details.html?id=${encodeURIComponent(car.id)}">View Details</a>

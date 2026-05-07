@@ -89,10 +89,11 @@
     }
 
     .metrics-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      display: flex;
+      justify-content: center;
       gap: 0.9rem;
       margin-bottom: 1.25rem;
+      flex-wrap: wrap;
     }
 
     .metric-card {
@@ -101,6 +102,10 @@
       border-radius: 16px;
       padding: 1.05rem;
       box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      flex: 1;
+      min-width: 160px;
+      max-width: 280px;
+      text-align: center;
     }
 
     .metric-label {
@@ -229,17 +234,6 @@
       font-size: 0.82rem;
       font-weight: 800;
       white-space: nowrap;
-    }
-
-    .fraud-badge {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #991b1b;
-      border-radius: 10px;
-      padding: 0.5rem 0.65rem;
-      font-size: 0.76rem;
-      font-weight: 800;
-      margin-bottom: 0.8rem;
     }
 
     .empty-state {
@@ -379,7 +373,7 @@
 
     @media (max-width: 980px) {
       .seller-hero { grid-template-columns: 1fr; }
-      .metrics-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metrics-row { justify-content: flex-start; }
       .car-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
@@ -404,11 +398,6 @@
       </div>
     </div>
 
-    <div class="hero-mini-card">
-      <div class="label">Avg Rating</div>
-      <div class="value" id="hero-rating">—</div>
-      <div class="hint" id="hero-rating-hint">No reviews yet</div>
-    </div>
   </section>
 
   <div class="metrics-row" id="metrics-row">
@@ -423,10 +412,6 @@
     <div class="metric-card">
       <div class="metric-value" id="m-available">—</div>
       <div class="metric-label">Available</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-value stars" id="m-rating">—</div>
-      <div class="metric-label" id="m-rating-label">Avg Rating</div>
     </div>
   </div>
 
@@ -488,29 +473,10 @@
 
   function logoutSeller() { clearCurrentUser(); window.location.href = 'login-seller.html'; }
 
-  function getSellerRating(sellerId) {
-    if (typeof getSellerRatingSummary === 'function') {
-      const summary = getSellerRatingSummary(sellerId);
-      if (summary) return summary;
-    }
-
-    const legacyRatings = JSON.parse(localStorage.getItem('ucm_seller_ratings')) || [];
-    const mine = legacyRatings.filter(r => String(r.sellerId) === String(sellerId));
-    if (!mine.length) return null;
-    const avg = mine.reduce((s, r) => s + Number(r.rating || 0), 0) / mine.length;
-    return { avg: avg.toFixed(1), count: mine.length };
-  }
-
-  function renderStars(value) {
-    const r = Math.round(Number(value || 0));
-    return Array.from({length: 5}, (_, i) => i < r ? '★' : '☆').join('');
-  }
-
   function renderDashboard(seller) {
     const allCars = getCars().filter(c => c.sellerId === seller.id);
     const sold    = allCars.filter(c => String(c.status || '').toLowerCase() === 'sold');
     const avail   = allCars.filter(c => String(c.status || '').toLowerCase() === 'available');
-    const rating  = getSellerRating(seller.id);
 
     const welcomeEl = document.getElementById('seller-welcome-title');
     if (welcomeEl) {
@@ -522,24 +488,6 @@
     document.getElementById('m-available').textContent = avail.length;
 
     renderSellerContact(seller);
-
-    if (rating) {
-      document.getElementById('m-rating').textContent       = renderStars(rating.avg);
-      document.getElementById('m-rating-label').textContent = `${rating.avg}/5 (${rating.count} reviews)`;
-
-      const heroRatingEl = document.getElementById('hero-rating');
-      const heroHintEl = document.getElementById('hero-rating-hint');
-      if (heroRatingEl) heroRatingEl.textContent = renderStars(rating.avg);
-      if (heroHintEl) heroHintEl.textContent = `${rating.avg}/5 (${rating.count} reviews)`;
-    } else {
-      document.getElementById('m-rating').textContent       = '—';
-      document.getElementById('m-rating-label').textContent = 'No reviews yet';
-
-      const heroRatingEl = document.getElementById('hero-rating');
-      const heroHintEl = document.getElementById('hero-rating-hint');
-      if (heroRatingEl) heroRatingEl.textContent = '—';
-      if (heroHintEl) heroHintEl.textContent = 'No reviews yet';
-    }
 
     if (!allCars.length) {
       document.getElementById('listings-grid').innerHTML = `
@@ -596,7 +544,6 @@
     <div class="car-card-header">
       <h3 class="car-card-title">${car.make} ${car.model}</h3>
       <div style="display:flex;align-items:center;gap:0.35rem;">
-        ${car.fraudFlag ? `<span title="Price Alert" style="font-size:1.1rem;">⚠️</span>` : ''}
         <span class="health-badge ${isSold ? 'health-poor' : 'health-good'}" style="padding:0.18rem 0.45rem;">${isSold ? 'SOLD' : 'AVAILABLE'}</span>
       </div>
     </div>
@@ -606,7 +553,6 @@
       <span class="health-badge ${band.cls}">&#9679; ${score} ${band.label}</span>
       <span class="view-count">&#128065; ${car.viewCount || 0} views</span>
     </div>
-    ${car.fraudFlag ? `<div class="fraud-badge">&#9888; Price Alert — check pricing</div>` : ''}
     <div style="margin-top:0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
       <button class="btn btn-secondary" style="flex:1;padding:0.45rem;font-size:0.8rem;"
         onclick="window.location.href='car-details.html?id=${car.id}'">View</button>
@@ -650,8 +596,7 @@
     }
     const cars = getCars();
     const target = getCarById(carId);
-    const fraudFlag = isFraudFlagged(value, target.make, target.year, cars);
-    updateCar(carId, { price: value, fraudFlag: fraudFlag });
+    updateCar(carId, { price: value });
     renderDashboard(getCurrentUser());
   }
 

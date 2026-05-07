@@ -186,7 +186,6 @@
           <a href="wishlist.html">Wishlist</a>
           <a href="recently-viewed.html">Recent</a>
           <a href="my-purchases.html">My Purchases</a>
-          <a href="compare-cars.html">Compare Cars</a>
           <a href="support.html" class="active">Support</a>
         `;
 
@@ -223,7 +222,11 @@
     const message = document.getElementById('feedback-message').value.trim();
 
     if (message.length < 20) {
-      document.getElementById('feedback-message-error').textContent = 'Message must be at least 20 characters.';
+      const errorEl = document.getElementById('feedback-message-error');
+      const messageEl = document.getElementById('feedback-message');
+      errorEl.textContent = 'Message must be at least 20 characters.';
+      errorEl.classList.add('visible');
+      messageEl.classList.add('is-error');
       return;
     }
 
@@ -242,10 +245,16 @@
     success.textContent = 'Thank you for your feedback! We will get back to you shortly.';
     success.classList.add('visible');
     resetFeedbackForm(false);
+    success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    alert('Feedback submitted successfully.');
   }
 
   function clearMessageError() {
-    document.getElementById('feedback-message-error').textContent = '';
+    const errorEl = document.getElementById('feedback-message-error');
+    const messageEl = document.getElementById('feedback-message');
+    errorEl.textContent = '';
+    errorEl.classList.remove('visible');
+    messageEl.classList.remove('is-error');
   }
 
   function resetFeedbackForm(clearSuccess) {

@@ -154,7 +154,6 @@
             <a href="wishlist.html">Wishlist</a>
             <a href="recently-viewed.html">Recent</a>
             <a href="my-purchases.html" class="active">My Purchases</a>
-            <a href="compare-cars.html">Compare Cars</a>
             <a href="support.html">Support</a>
             <button type="button" onclick="logoutBuyer()">Logout</button>
           </nav>
@@ -188,24 +187,13 @@
       return;
     }
 
-    const reviews = typeof getReviews === 'function' ? getReviews() : (JSON.parse(localStorage.getItem('ucm_reviews')) || []);
-
     content.innerHTML = `
       <div class="list">
         ${purchases.map(function (purchase) {
           const car = getCarById(purchase.carId);
           if (!car) return '';
 
-          const currentRating = getSellerRatingSummary(purchase.sellerId);
-          const ratingAtPurchase = purchase.sellerRatingAtPurchase != null
-            ? Number(purchase.sellerRatingAtPurchase).toFixed(1)
-            : (currentRating ? Number(currentRating.avg).toFixed(1) : null);
           const sellerName = purchase.sellerNameAtPurchase || getSellerName(purchase.sellerId);
-
-          const reviewed = reviews.some(function (review) {
-            return String(review.purchaseId) === String(purchase.id) &&
-                   String(review.buyerId) === String(buyerId);
-          });
 
           return `
             <article class="card">
@@ -220,15 +208,11 @@
               <div class="meta">
                 <div class="chip"><b>Purchase Date</b>${formatDate(purchase.purchaseDate)}</div>
                 <div class="chip"><b>Seller</b>${escapeHtml(sellerName)}</div>
-                <div class="chip"><b>Seller Rating at Purchase</b>${ratingAtPurchase ? (renderStars(ratingAtPurchase) + ' ' + escapeHtml(ratingAtPurchase) + '/5') : 'No ratings yet'}</div>
                 <div class="chip"><b>Status</b>${escapeHtml(String(car.status || 'sold').toUpperCase())}</div>
               </div>
 
               <div class="actions">
                 <a class="btn btn-secondary" href="car-details.html?id=${encodeURIComponent(car.id)}">View Car Details</a>
-                ${reviewed
-                  ? '<button type="button" class="btn btn-secondary" disabled style="opacity:0.6;">Reviewed</button>'
-                  : '<a class="btn btn-primary" href="purchase.html?reviewPurchase=' + encodeURIComponent(purchase.id) + '">Rate Seller</a>'}
               </div>
             </article>
           `;
@@ -284,15 +268,6 @@
     const month = months[date.getMonth()];
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
-  }
-
-  function renderStars(value) {
-    const rating = Math.round(Number(value || 0));
-    let stars = '';
-    for (let i = 1; i <= 5; i++) {
-      stars += i <= rating ? '★' : '☆';
-    }
-    return stars;
   }
 
   function logoutBuyer() {

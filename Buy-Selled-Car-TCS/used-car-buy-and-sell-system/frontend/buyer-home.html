@@ -132,18 +132,20 @@
     }
 
     .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
+      justify-content: center;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
 
     .stat-card {
+      flex: 0 1 280px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 1.15rem;
       box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      text-align: center;
     }
 
     .stat-label {
@@ -288,7 +290,6 @@
       font-weight: 900;
       color: rgba(255, 255, 255, 0.26);
       letter-spacing: -0.08em;
-      display: none;
     }
 
     .car-status-pill {
@@ -356,6 +357,19 @@
       margin-top: 0;
       padding: 0.65rem 0.8rem;
       font-size: 0.82rem;
+    }
+
+    .btn-interest {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #fff;
+      border: 1px solid #ea580c;
+      box-shadow: 0 8px 18px rgba(249, 115, 22, 0.28);
+    }
+
+    .btn-interest:hover {
+      background: linear-gradient(135deg, #ea580c, #c2410c);
+      border-color: #c2410c;
+      box-shadow: 0 12px 20px rgba(234, 88, 12, 0.32);
     }
 
     .health-badge {
@@ -478,13 +492,29 @@
       font-weight: 800;
     }
 
+    .modal-actions {
+      margin-top: 1.2rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.65rem;
+    }
+
+    .modal-actions .btn {
+      width: auto;
+      min-width: 200px;
+      margin-top: 0;
+      padding: 0.78rem 2rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
     @media (max-width: 980px) {
       .buyer-hero {
         grid-template-columns: 1fr;
       }
 
       .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        flex-wrap: wrap;
       }
 
       .filter-grid {
@@ -517,7 +547,8 @@
       .stats-grid,
       .filter-grid,
       .cars-grid,
-      .details-grid {
+      .details-grid,
+      .modal-actions {
         grid-template-columns: 1fr;
       }
 
@@ -578,11 +609,6 @@
         <div class="stat-sub">Highest visible health score</div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-label">Price Alerts</div>
-        <div class="stat-value" id="stat-alerts">0</div>
-        <div class="stat-sub">Listings flagged for review</div>
-      </div>
     </section>
 
     <section class="filter-panel">
@@ -760,7 +786,6 @@
             <a href="wishlist.html">Wishlist</a>
             <a href="recently-viewed.html">Recent</a>
             <a href="my-purchases.html">My Purchases</a>
-            <a href="compare-cars.html">Compare Cars</a>
             <a href="support.html">Support</a>
             <button type="button" onclick="logoutBuyer()">Logout</button>
           </nav>
@@ -886,15 +911,10 @@
         }))
       : null;
 
-    const flagged = visibleCars.filter(function (car) {
-      return car.fraudFlag === true;
-    }).length;
-
     document.getElementById('hero-car-count').textContent = total;
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-average').textContent = formatPrice(avgPrice);
     document.getElementById('stat-health').textContent = bestHealth ? bestHealth : '—';
-    document.getElementById('stat-alerts').textContent = flagged;
 
     document.getElementById('filter-summary').textContent =
       'Showing ' + total + ' car' + (total === 1 ? '' : 's');
@@ -931,12 +951,20 @@
 
     emptyState.style.display = 'none';
 
+    const usedImages = new Set();
+
     visibleCars.forEach(function (car) {
       const card = document.createElement('article');
       card.className = 'car-card';
 
       const band = getHealthBand(car.healthScore);
-      const imagePath = getCarImage(car);
+      let imagePath = getCarImage(car);
+
+      if (imagePath && usedImages.has(imagePath)) {
+        imagePath = null;
+      } else if (imagePath) {
+        usedImages.add(imagePath);
+      }
 
       card.innerHTML = `
         <div class="car-visual" style="${imagePath ? '' : 'background:' + makeColor(car.make) + ';'}">
@@ -958,12 +986,11 @@
             ● ${escapeHtml(car.healthScore || '—')} ${escapeHtml(band.label)}
           </span>
 
-          ${car.fraudFlag ? '<div class="fraud-warning">⚠ Price needs review. Compare carefully before buying.</div>' : ''}
 
           <div class="car-specs">
             <div class="spec-chip">${formatKilometers(car.mileage)}</div>
             <div class="spec-chip">${escapeHtml(car.color || '—')}</div>
-            <div class="spec-chip">${escapeHtml(car.sellerCity || '—')}</div>
+            <div class="spec-chip">${escapeHtml(getSellerCityDisplay(car))}</div>
             <div class="spec-chip">${escapeHtml(car.fuelType || '—')}</div>
           </div>
 
@@ -971,8 +998,8 @@
             <button type="button" class="btn btn-secondary" onclick="openCarModal('${escapeAttr(car.id)}')">
               View Details
             </button>
-            <button type="button" class="btn btn-primary" onclick="contactSeller('${escapeAttr(car.id)}')">
-              Interested
+            <button type="button" class="btn btn-interest" onclick="contactSeller('${escapeAttr(car.id)}')">
+              Mark Interested
             </button>
           </div>
         </div>
@@ -1018,7 +1045,6 @@
         ● ${escapeHtml(car.healthScore || '—')} ${escapeHtml(band.label)}
       </span>
 
-      ${car.fraudFlag ? '<div class="fraud-warning" style="margin-top:0.8rem;">⚠ This listing price is flagged for review. Please compare market prices carefully.</div>' : ''}
 
       <div class="details-grid">
         <div class="detail-item">
@@ -1063,7 +1089,7 @@
 
         <div class="detail-item">
           <div class="detail-label">Seller City</div>
-          <div class="detail-value">${escapeHtml(car.sellerCity || '—')}</div>
+          <div class="detail-value">${escapeHtml(getSellerCityDisplay(car))}</div>
         </div>
 
         <div class="detail-item">
@@ -1072,9 +1098,11 @@
         </div>
       </div>
 
-      <button type="button" class="btn btn-primary" style="margin-top:1.2rem;" onclick="contactSeller('${escapeAttr(car.id)}')">
-        Mark as Interested
-      </button>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-interest" onclick="contactSeller('${escapeAttr(car.id)}')">
+          Mark as Interested
+        </button>
+      </div>
     `;
 
     document.getElementById('car-modal').classList.add('visible');
@@ -1096,6 +1124,11 @@
       car.make + ' ' + car.model +
       '. Seller: ' + (car.sellerName || car.sellerId || 'Not available')
     );
+  }
+
+  function getSellerCityDisplay(car) {
+    const city = String((car && (car.sellerCity || car.city || car.sellerLocation)) || '').trim();
+    return city || 'City not listed';
   }
 
   function clearFilters() {

@@ -336,11 +336,6 @@
       font-size: 0.82rem;
     }
 
-    .star-rating {
-      color: #f59e0b;
-      letter-spacing: 0.05em;
-    }
-
     .action-btns {
       display: grid;
       gap: 0.75rem;
@@ -625,7 +620,8 @@
       return;
     }
 
-    if (String(currentUser.role || '').trim().toLowerCase() !== 'buyer') {
+    const role = String(currentUser.role || '').trim().toLowerCase();
+    if (role !== 'buyer' && role !== 'seller') {
       clearCurrentUser();
       window.location.href = 'login.html';
       return;
@@ -643,6 +639,7 @@
 
   function renderFallbackNav(user) {
     const nav = document.getElementById('nav-placeholder');
+    const isSeller = String(user.role || '').trim().toLowerCase() === 'seller';
 
     nav.innerHTML = `
       <header class="top-nav">
@@ -651,18 +648,23 @@
             <div class="brand-logo" style="font-size:1.55rem;">
               UsedCar<span>Mart</span>
             </div>
-            <span class="badge badge-buyer">BUYER</span>
+            <span class="badge ${isSeller ? 'badge-seller' : 'badge-buyer'}">${isSeller ? 'SELLER' : 'BUYER'}</span>
           </div>
 
           <nav class="top-nav-links">
-            <a href="buyer-home.html">Home</a>
-            <a href="car-listings.html">Browse</a>
-            <a href="wishlist.html">Wishlist</a>
-            <a href="recently-viewed.html">Recent</a>
-            <a href="my-purchases.html">My Purchases</a>
-            <a href="compare-cars.html">Compare Cars</a>
-            <a href="support.html">Support</a>
-            <button type="button" onclick="logoutBuyer()">Logout</button>
+            ${isSeller ? `
+              <a href="seller-dashboard.html">Dashboard</a>
+              <a href="add-car.html">+ Add Car</a>
+              <button type="button" onclick="logoutBuyer()">Logout</button>
+            ` : `
+              <a href="buyer-home.html">Home</a>
+              <a href="car-listings.html">Browse</a>
+              <a href="wishlist.html">Wishlist</a>
+              <a href="recently-viewed.html">Recent</a>
+              <a href="my-purchases.html">My Purchases</a>
+              <a href="support.html">Support</a>
+              <button type="button" onclick="logoutBuyer()">Logout</button>
+            `}
           </nav>
         </div>
       </header>
@@ -722,19 +724,9 @@
     const imagePath = getCarImage(car);
     const wished = isInWishlist(user.id || user.userId, car.id);
 
-    const avg = getAveragePrice(car.make, car.year, allCars);
-    const isFraud = isFraudFlagged(car.price, car.make, car.year, allCars);
-    const diffPct = avg ? Math.round(((Number(car.price) - Number(avg)) / Number(avg)) * 100) : null;
-
-    const diffLabel = diffPct !== null
-      ? (diffPct >= 0 ? diffPct + '% above' : Math.abs(diffPct) + '% below') + ' market average'
-      : 'Not enough data for comparison';
-
     const seller = findSellerForCar(car);
     currentSeller = seller;
 
-    const sellerRating = getSellerRatingSafe(car.sellerId);
-    const sellerRecentReviews = getRecentSellerReviews(car.sellerId, 3);
     const sellerCarsSold = allCars.filter(function (item) {
       return String(item.sellerId) === String(car.sellerId) &&
              String(item.status || '').toLowerCase() === 'sold';
@@ -742,8 +734,6 @@
 
     const ageDeduction = calculateAgeDeduction(car.year);
     const mileageDeduction = calculateMileageDeduction(car.mileage);
-
-    const alsoViewed = getAlsoViewedCars(car, allCars);
 
     content.innerHTML = `
       <div class="page-wrapper">
@@ -811,34 +801,6 @@
             </div>
 
             <div class="sidebar-card">
-              <div class="sidebar-card-title">Price Review</div>
-
-              ${
-                isFraud
-                  ? '<div class="info-box danger">⚠ Price Alert: This listing is significantly different from similar market prices. Please compare carefully.</div>'
-                  : '<div class="info-box safe">✓ Price appears to be within the expected market range.</div>'
-              }
-
-              ${
-                avg !== null
-                  ? `
-                    <div style="margin-top:0.85rem;font-size:0.86rem;color:var(--muted);line-height:1.6;">
-                      Market Average for ${escapeHtml(car.make)} ${escapeHtml(car.year)}:<br>
-                      <strong style="color:var(--text);">${formatPrice(avg)}</strong><br>
-                      <span style="color:${diffPct < 0 ? 'var(--error)' : 'var(--success)'};font-weight:800;">
-                        This car is ${escapeHtml(diffLabel)}
-                      </span>
-                    </div>
-                  `
-                  : `
-                    <div style="margin-top:0.85rem;font-size:0.86rem;color:var(--muted);">
-                      Not enough similar listings available for market comparison.
-                    </div>
-                  `
-              }
-            </div>
-
-            <div class="sidebar-card">
               <div class="sidebar-card-title">Seller Information</div>
 
               <div class="seller-row">
@@ -855,39 +817,6 @@
                 </div>
               </div>
 
-              ${
-                sellerRating
-                  ? `
-                    <p style="font-size:0.88rem;margin-bottom:0.35rem;">
-                      <span class="star-rating">${renderStars(sellerRating.avg)}</span>
-                      <strong>${escapeHtml(sellerRating.avg)}</strong>
-                      <span style="color:var(--muted);">(${escapeHtml(sellerRating.count)} reviews)</span>
-                    </p>
-                  `
-                  : '<p style="font-size:0.82rem;color:var(--muted);">No reviews yet</p>'
-              }
-
-              ${
-                sellerRecentReviews.length
-                  ? `
-                    <div style="margin-top:0.55rem;display:grid;gap:0.45rem;">
-                      ${sellerRecentReviews.map(function (review) {
-                        return `
-                          <div style="border:1px solid var(--border);border-radius:10px;padding:0.45rem 0.55rem;background:#f8fafc;">
-                            <div style="font-size:0.76rem;color:var(--muted);display:flex;justify-content:space-between;gap:0.5rem;">
-                              <span>${escapeHtml(review.buyerName || 'Buyer')}</span>
-                              <span>${formatDateSafe(review.reviewDate)}</span>
-                            </div>
-                            <div style="font-size:0.82rem;margin-top:0.15rem;">${renderStars(review.rating)} <strong>${escapeHtml(String(review.rating))}</strong></div>
-                            ${review.comment ? `<div style="font-size:0.78rem;color:var(--text);margin-top:0.15rem;">${escapeHtml(review.comment)}</div>` : ''}
-                          </div>
-                        `;
-                      }).join('')}
-                    </div>
-                  `
-                  : ''
-              }
-
               <p style="font-size:0.82rem;color:var(--muted);margin-top:0.35rem;">
                 ${sellerCarsSold} cars sold
               </p>
@@ -901,6 +830,7 @@
               <div class="sidebar-card-title">Actions</div>
 
               <div class="action-btns">
+                ${String(user.role || '').trim().toLowerCase() !== 'seller' ? `
                 <button id="wishlist-btn" class="btn ${wished ? 'btn-danger' : 'btn-outline'}" onclick="toggleWishlistDetail('${escapeAttr(car.id)}')">
                   ${wished ? '♥ Remove from Wishlist' : '♡ Add to Wishlist'}
                 </button>
@@ -919,11 +849,10 @@
                     `
                 }
 
-                <button class="btn btn-outline" onclick="handleCompare('${escapeAttr(car.id)}')">
-                  ⚖ Compare This Car
-                </button>
-
                 <button class="btn btn-outline" onclick="window.location.href='buyer-home.html'">← Back to Home</button>
+                ` : `
+                <button class="btn btn-outline" onclick="window.location.href='seller-dashboard.html'">← Back to Dashboard</button>
+                `}
               </div>
             </div>
 
@@ -932,65 +861,6 @@
         </div>
       </div>
 
-      ${renderAlsoViewed(alsoViewed)}
-    `;
-  }
-
-  function getAlsoViewedCars(car, allCars) {
-    const price = Number(car.price || 0);
-    const low = price * 0.85;
-    const high = price * 1.15;
-
-    return allCars
-      .filter(function (item) {
-        if (String(item.id) === String(car.id)) return false;
-        if (String(item.status || 'available').toLowerCase() !== 'available') return false;
-
-        const sameFuel = item.fuelType === car.fuelType;
-        const similarPrice = Number(item.price || 0) >= low && Number(item.price || 0) <= high;
-        const sameMake = item.make === car.make;
-
-        return sameFuel || similarPrice || sameMake;
-      })
-      .slice(0, 3);
-  }
-
-  function renderAlsoViewed(cars) {
-    if (!cars.length) return '';
-
-    return `
-      <div class="page-wrapper" style="padding-top:0;">
-        <div class="section-header">
-          <h2 class="section-title">People Also Viewed</h2>
-        </div>
-
-        <div class="also-viewed-grid">
-          ${cars.map(function (car) {
-            const score = car.healthScore ?? calculateHealthScore(car.year, car.mileage);
-            const band = normalizeHealthBand(getHealthBand(score));
-
-            return `
-              <div class="mini-card" onclick="window.location.href='car-details.html?id=${encodeURIComponent(car.id)}'">
-                <div class="mini-card-img" style="background:${makeColor(car.make)};">
-                  ${escapeHtml(String(car.make || '?').charAt(0))}
-                </div>
-
-                <div class="mini-card-body">
-                  <div class="mini-card-title">
-                    ${escapeHtml(car.make)} ${escapeHtml(car.model)} ${escapeHtml(car.year)}
-                  </div>
-
-                  <div class="mini-card-price">${formatPrice(car.price)}</div>
-
-                  <span class="health-badge ${band.cls}" style="margin-top:0.45rem;">
-                    ${escapeHtml(score)} ${escapeHtml(band.label)}
-                  </span>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
     `;
   }
 
@@ -1083,30 +953,6 @@
     return 'ucm_wishlist_' + String(userId || 'guest');
   }
 
-  function handleCompare(carId) {
-    const key = getCompareKey(currentUser.id || currentUser.userId);
-    const compareList = JSON.parse(localStorage.getItem(key)) || [];
-
-    if (compareList.includes(carId)) {
-      alert('This car is already in your comparison list.');
-      return;
-    }
-
-    if (compareList.length >= 3) {
-      alert('Comparison list is full. You can compare up to 3 cars.');
-      return;
-    }
-
-    compareList.push(carId);
-    localStorage.setItem(key, JSON.stringify(compareList));
-
-    alert('Added to comparison list.');
-  }
-
-  function getCompareKey(userId) {
-    return 'ucm_compare_' + String(userId || 'guest');
-  }
-
   function addRecentlyViewed(userId, carId) {
     const key = 'ucm_recently_viewed_' + String(userId || 'guest');
     const existing = JSON.parse(localStorage.getItem(key)) || [];
@@ -1140,71 +986,6 @@
     } catch (err) {
       alert('Interest recorded for this car.');
     }
-  }
-
-  function getSellerRatingSafe(sellerId) {
-    if (typeof getSellerRatingSummary === 'function') {
-      const summary = getSellerRatingSummary(sellerId);
-      if (summary) return summary;
-    }
-
-    const legacyRatings = JSON.parse(localStorage.getItem('ucm_seller_ratings')) || [];
-    const sellerRatings = legacyRatings.filter(function (rating) {
-      return String(rating.sellerId) === String(sellerId);
-    });
-
-    if (!sellerRatings.length) {
-      return null;
-    }
-
-    const avg = sellerRatings.reduce(function (sum, rating) {
-      return sum + Number(rating.rating || 0);
-    }, 0) / sellerRatings.length;
-
-    return { avg: avg.toFixed(1), count: sellerRatings.length };
-  }
-
-  function getRecentSellerReviews(sellerId, limit) {
-    const max = Number(limit || 3);
-    let reviews = [];
-
-    if (typeof getReviewsForSeller === 'function') {
-      reviews = getReviewsForSeller(sellerId);
-    } else {
-      reviews = (JSON.parse(localStorage.getItem('ucm_reviews')) || []).filter(function (review) {
-        return String(review.sellerId) === String(sellerId);
-      });
-    }
-
-    return reviews
-      .slice()
-      .sort(function (a, b) {
-        return new Date(b.reviewDate || 0) - new Date(a.reviewDate || 0);
-      })
-      .slice(0, max)
-      .map(function (review) {
-        const buyer = findBuyerById(review.buyerId);
-        const buyerName = buyer ? String(buyer.fullName || buyer.userId || 'Buyer').split(' ')[0] : 'Buyer';
-        return Object.assign({}, review, { buyerName: buyerName });
-      });
-  }
-
-  function findBuyerById(buyerId) {
-    const users = JSON.parse(localStorage.getItem('ucm_users')) || [];
-    return users.find(function (user) {
-      return String(user.id || user.userId) === String(buyerId);
-    }) || null;
-  }
-
-  function renderStars(value) {
-    const rating = Math.round(Number(value || 0));
-    let stars = '';
-
-    for (let i = 1; i <= 5; i++) {
-      stars += i <= rating ? '★' : '☆';
-    }
-
-    return stars;
   }
 
   function normalizeHealthBand(band) {
@@ -1289,7 +1070,6 @@
   window.showContact = showContact;
   window.closeContactModal = closeContactModal;
   window.toggleWishlistDetail = toggleWishlistDetail;
-  window.handleCompare = handleCompare;
   window.markInterestedAndBuy = markInterestedAndBuy;
 </script>
 

@@ -133,95 +133,6 @@ function getHealthBand(score) {
   };
 }
 
-/* ─── Market average and fraud detection ──────────────── */
-
-function getAveragePrice(make, year, cars) {
-  const carList = Array.isArray(cars) ? cars : getCars();
-
-  const targetMake = String(make || '').trim().toLowerCase();
-  const targetYear = Number(year);
-
-  if (!targetMake || !targetYear) {
-    return null;
-  }
-
-  const matchingCars = carList.filter(function (car) {
-    return String(car.make || '').trim().toLowerCase() === targetMake &&
-           Number(car.year) === targetYear &&
-           Number(car.price) > 0;
-  });
-
-  /*
-    If still no match, return null.
-  */
-  if (!matchingCars.length) {
-    return null;
-  }
-
-  const total = matchingCars.reduce(function (sum, car) {
-    return sum + Number(car.price || 0);
-  }, 0);
-
-  return Math.round(total / matchingCars.length);
-}
-
-function isFraudFlagged(price, make, year, cars) {
-  const askingPrice = Number(price);
-
-  if (!askingPrice || askingPrice <= 0) {
-    return false;
-  }
-
-  const avgPrice = getAveragePrice(make, year, cars);
-
-  if (avgPrice === null || avgPrice <= 0) {
-    return false;
-  }
-
-  const deviationRatio = Math.abs(askingPrice - avgPrice) / avgPrice;
-  return deviationRatio > 0.4;
-}
-
-/* ─── Reviews and seller ratings ──────────────────────── */
-
-const REVIEWS_KEY = 'ucm_reviews';
-
-function getReviews() {
-  try {
-    return JSON.parse(localStorage.getItem(REVIEWS_KEY)) || [];
-  } catch (err) {
-    console.error('Failed to read reviews from localStorage:', err);
-    return [];
-  }
-}
-
-function saveReviews(reviews) {
-  localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
-}
-
-function getReviewsForSeller(sellerId) {
-  return getReviews().filter(function (review) {
-    return String(review.sellerId) === String(sellerId);
-  });
-}
-
-function getSellerRatingSummary(sellerId) {
-  const reviews = getReviewsForSeller(sellerId);
-
-  if (!reviews.length) {
-    return null;
-  }
-
-  const avg = reviews.reduce(function (sum, review) {
-    return sum + Number(review.rating || 0);
-  }, 0) / reviews.length;
-
-  return {
-    avg: avg.toFixed(1),
-    count: reviews.length
-  };
-}
-
 /* ─── Visual helper for car cards/placeholders ────────── */
 
 function makeColor(make) {
@@ -295,7 +206,6 @@ function seedCarsIfEmpty() {
       viewCount: 18,
       listingDate: '2026-04-20T10:00:00.000Z',
       healthScore: calculateHealthScore(2021, 28000),
-      fraudFlag: false
     },
     {
       id: 'CAR1002',
@@ -312,7 +222,6 @@ function seedCarsIfEmpty() {
       viewCount: 34,
       listingDate: '2026-04-24T12:30:00.000Z',
       healthScore: calculateHealthScore(2020, 42000),
-      fraudFlag: false
     },
     {
       id: 'CAR1003',
@@ -329,7 +238,6 @@ function seedCarsIfEmpty() {
       viewCount: 27,
       listingDate: '2026-04-26T09:15:00.000Z',
       healthScore: calculateHealthScore(2019, 55000),
-      fraudFlag: false
     },
     {
       id: 'CAR1004',
@@ -346,7 +254,6 @@ function seedCarsIfEmpty() {
       viewCount: 41,
       listingDate: '2026-04-28T14:45:00.000Z',
       healthScore: calculateHealthScore(2022, 21000),
-      fraudFlag: false
     },
     {
       id: 'CAR1005',
@@ -363,7 +270,6 @@ function seedCarsIfEmpty() {
       viewCount: 63,
       listingDate: '2026-04-29T08:20:00.000Z',
       healthScore: calculateHealthScore(2018, 78000),
-      fraudFlag: false
     },
     {
       id: 'CAR1006',
@@ -380,18 +286,8 @@ function seedCarsIfEmpty() {
       viewCount: 52,
       listingDate: '2026-05-01T11:10:00.000Z',
       healthScore: calculateHealthScore(2021, 36000),
-      fraudFlag: false
     }
   ];
 
-  /*
-    Recalculate fraud flags after all demo cars are created.
-  */
-  const finalCars = demoCars.map(function (car) {
-    return Object.assign({}, car, {
-      fraudFlag: isFraudFlagged(car.price, car.make, car.year, demoCars)
-    });
-  });
-
-  saveCars(finalCars);
+  saveCars(demoCars);
 }

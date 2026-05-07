@@ -64,7 +64,6 @@ function seedUsersIfEmpty() {
   const existing = getUsers();
   const hasDemoBuyer  = existing.some(u => u.userId === 'demoBuyer');
   const hasDemoSeller = existing.some(u => u.userId === 'demoSeller');
-  const hasDemoAdmin  = existing.some(u => u.userId === 'demoAdmin');
 
   const toAdd = [];
 
@@ -93,20 +92,6 @@ function seedUsersIfEmpty() {
       role:             'Seller',
       password:         'Demo@1234',
       registrationDate: '2025-11-10T09:30:00.000Z'
-    });
-  }
-
-  if (!hasDemoAdmin) {
-    toAdd.push({
-      id:               'ADMIN_DEMO_1',
-      userId:           'demoAdmin',
-      fullName:         'System Admin',
-      email:            'admin@demo.com',
-      phone:            '+919900000001',
-      city:             'Bangalore',
-      role:             'Admin',
-      password:         'Admin@1234',
-      registrationDate: '2025-10-01T10:00:00.000Z'
     });
   }
 

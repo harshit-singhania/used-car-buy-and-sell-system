@@ -5,16 +5,188 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Add New Car — UsedCarMart</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .add-car-wrapper {
+      max-width: 980px;
+      margin: 1.5rem auto 2.5rem;
+      padding: 0 1rem;
+    }
+
+    .add-car-wrapper .auth-card.wide {
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 1.8rem;
+      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.1);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      margin: 0 auto;
+    }
+
+    .form-intro {
+      margin-bottom: 1.35rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+    }
+
+    .form-panel {
+      border: 1px solid #e8eef5;
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 1rem 1rem 0.35rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .add-car-wrapper .form-section-title {
+      margin-top: 0;
+      border-bottom: none;
+      color: var(--primary);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      background: #eff6ff;
+      display: inline-block;
+      border-radius: 999px;
+      padding: 0.28rem 0.65rem;
+      margin-bottom: 0.95rem;
+    }
+
+    .add-car-wrapper .form-grid {
+      gap: 0.15rem 0.9rem;
+    }
+
+    .add-car-wrapper .field label {
+      margin-bottom: 0.45rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .add-car-wrapper input,
+    .add-car-wrapper select {
+      border-radius: 10px;
+      border-color: #d9e2ec;
+      background: #fdfefe;
+      min-height: 42px;
+    }
+
+    .add-car-wrapper input:hover,
+    .add-car-wrapper select:hover {
+      border-color: #c3d1df;
+    }
+
+    .add-car-wrapper .radio-group {
+      gap: 0.7rem;
+      padding: 0;
+      flex-wrap: wrap;
+    }
+
+    .add-car-wrapper .radio-option {
+      border: 1px solid #d6e0eb;
+      border-radius: 999px;
+      padding: 0.5rem 0.95rem;
+      min-height: 48px;
+      background: #f8fbff;
+      font-size: 0.83rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #0f172a;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.18s ease;
+    }
+
+    .add-car-wrapper .radio-option:hover {
+      border-color: #b8c8dd;
+      background: #f3f8ff;
+      transform: translateY(-1px);
+    }
+
+    .add-car-wrapper .radio-option:has(input[type="radio"]:checked) {
+      border-color: #3b82f6;
+      background: #eaf2ff;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+    }
+
+    .add-car-wrapper .radio-option input[type="radio"] {
+      margin: 0;
+      width: 1.2rem;
+      height: 1.2rem;
+      accent-color: #2563eb;
+      flex-shrink: 0;
+    }
+
+    .add-car-wrapper .radio-option input[type="radio"]:focus-visible {
+      outline: 2px solid #60a5fa;
+      outline-offset: 2px;
+    }
+
+    .add-car-wrapper .radio-label {
+      line-height: 1;
+    }
+
+    .add-car-wrapper .market-hint.visible {
+      margin-top: 0.45rem;
+      font-size: 0.78rem;
+      color: #1d4ed8;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      padding: 0.45rem 0.55rem;
+    }
+
+    .add-car-wrapper .form-actions {
+      margin-top: 1rem;
+      justify-content: flex-start;
+      gap: 0.85rem;
+    }
+
+    .add-car-wrapper .primary-actions {
+      gap: 0.85rem;
+    }
+
+    .add-car-wrapper .form-actions .btn {
+      min-width: 200px;
+    }
+
+    .add-car-wrapper .btn-reset {
+      margin-left: 0;
+    }
+
+    .section-performance .field-mileage-full {
+      grid-column: 1 / -1;
+    }
+
+    .section-pricing .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 680px) {
+      .add-car-wrapper {
+        margin-top: 1rem;
+      }
+
+      .add-car-wrapper .auth-card.wide {
+        padding: 1.2rem 1rem;
+      }
+
+      .add-car-wrapper .form-actions .btn {
+        min-width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
 
 <div id="nav-placeholder"></div>
 
 <div class="add-car-wrapper">
-  <div class="auth-card wide" style="max-width:100%;">
+  <div class="auth-card wide">
 
     <h1 class="auth-title">Add New Car Listing</h1>
     <p class="auth-subtitle">Fill in your car's details — health score and fraud check are calculated automatically</p>
+    <p class="form-intro">Tips: keep details accurate and use a realistic price to get better buyer responses.</p>
 
     <div class="alert alert-success" id="success-alert"></div>
     <div class="alert alert-error" id="error-alert"></div>
@@ -22,6 +194,7 @@
     <form id="add-car-form" novalidate>
 
       <!-- ── Car Details ──────────────────────────── -->
+      <section class="form-panel">
       <p class="form-section-title">Car Details</p>
       <div class="form-grid">
 
@@ -74,18 +247,20 @@
         </div>
 
       </div>
+      </section>
 
       <!-- ── Performance Details ──────────────────── -->
+      <section class="form-panel section-performance">
       <p class="form-section-title">Performance Details</p>
       <div class="form-grid">
 
         <div class="field">
           <label>Fuel Type <span class="required">*</span></label>
-          <div class="radio-group" style="flex-wrap:wrap;gap:1rem 2rem;">
-            <label class="radio-option"><input type="radio" name="fuelType" value="Petrol"> Petrol</label>
-            <label class="radio-option"><input type="radio" name="fuelType" value="Diesel"> Diesel</label>
-            <label class="radio-option"><input type="radio" name="fuelType" value="CNG"> CNG</label>
-            <label class="radio-option"><input type="radio" name="fuelType" value="Electric"> Electric</label>
+          <div class="radio-group">
+            <label class="radio-option"><input type="radio" name="fuelType" value="Petrol"><span class="radio-label">Petrol</span></label>
+            <label class="radio-option"><input type="radio" name="fuelType" value="Diesel"><span class="radio-label">Diesel</span></label>
+            <label class="radio-option"><input type="radio" name="fuelType" value="CNG"><span class="radio-label">CNG</span></label>
+            <label class="radio-option"><input type="radio" name="fuelType" value="Electric"><span class="radio-label">Electric</span></label>
           </div>
           <span class="error-msg" id="fuelType-error"></span>
         </div>
@@ -93,21 +268,23 @@
         <div class="field">
           <label>Transmission <span class="required">*</span></label>
           <div class="radio-group">
-            <label class="radio-option"><input type="radio" name="transmission" value="Manual"> Manual</label>
-            <label class="radio-option"><input type="radio" name="transmission" value="Automatic"> Automatic</label>
+            <label class="radio-option"><input type="radio" name="transmission" value="Manual"><span class="radio-label">Manual</span></label>
+            <label class="radio-option"><input type="radio" name="transmission" value="Automatic"><span class="radio-label">Automatic</span></label>
           </div>
           <span class="error-msg" id="transmission-error"></span>
         </div>
 
-        <div class="field">
+        <div class="field field-mileage-full">
           <label for="mileage">Mileage (km) <span class="required">*</span></label>
           <input type="number" id="mileage" placeholder="e.g. 25000" min="0" max="500000">
           <span class="error-msg" id="mileage-error"></span>
         </div>
 
       </div>
+      </section>
 
       <!-- ── Pricing ──────────────────────────────── -->
+      <section class="form-panel section-pricing">
       <p class="form-section-title">Pricing</p>
       <div class="form-grid">
 
@@ -119,6 +296,7 @@
         </div>
 
       </div>
+      </section>
 
       <!-- ── Buttons ──────────────────────────────── -->
       <div class="form-actions">
@@ -255,16 +433,8 @@
       return;
     }
 
-    const avg = getAveragePrice(make, year, getCars());
-
-    if (avg === null) {
-      hint.classList.remove('visible');
-      hint.textContent = '';
-      return;
-    }
-
-    hint.textContent = `Market average for ${make} ${year}: ${formatPrice(avg)}`;
-    hint.classList.add('visible');
+    hint.classList.remove('visible');
+    hint.textContent = '';
   }
 
   /* ── Validation ───────────────────────────────── */
@@ -367,11 +537,6 @@
         listingDate: new Date().toISOString(),
         healthScore: calculateHealthScore(year, mileage)
       };
-
-      /*
-        Calculate fraud flag against existing + new car.
-      */
-      newCar.fraudFlag = isFraudFlagged(price, make, year, [...allCars, newCar]);
 
       allCars.push(newCar);
       saveCars(allCars);
